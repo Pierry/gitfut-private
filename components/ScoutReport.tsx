@@ -153,14 +153,11 @@ function MetricBar({ metric, accent, index = 0 }: { metric: Metric; accent: stri
   // the list, so the panel "draws itself" like a live scouting readout.
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    const reduced =
-      typeof window !== "undefined" &&
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) {
-      setMounted(true);
-      return;
-    }
-    const t = setTimeout(() => setMounted(true), 120 + index * 55);
+    // Set is kept inside the timeout (never synchronous in the effect body) so it
+    // can't cascade renders. Reduced motion uses a 0ms delay — the global
+    // prefers-reduced-motion reset in globals.css makes the transition instant.
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    const t = setTimeout(() => setMounted(true), reduced ? 0 : 120 + index * 55);
     return () => clearTimeout(t);
   }, [index]);
 
@@ -199,13 +196,8 @@ function MetricBar({ metric, accent, index = 0 }: { metric: Metric; accent: stri
 function Stagger({ step, children, className }: { step: number; children: React.ReactNode; className?: string }) {
   const [shown, setShown] = useState(false);
   useEffect(() => {
-    const reduced =
-      typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) {
-      setShown(true);
-      return;
-    }
-    const t = setTimeout(() => setShown(true), 90 + step * 110);
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    const t = setTimeout(() => setShown(true), reduced ? 0 : 90 + step * 110);
     return () => clearTimeout(t);
   }, [step]);
   return (

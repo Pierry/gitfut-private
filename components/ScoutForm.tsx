@@ -43,7 +43,8 @@ export default function ScoutForm({
         GET SCOUTED<span className="text-brand">.</span>
       </h1>
       <p className="mb-[26px] max-w-[420px] text-[clamp(15px,1.7vw,18px)] font-medium leading-[1.5] text-ink-dim max-[860px]:mx-auto">
-        Your GitHub stats, turned into a World-Cup-style player card rated out of 99.
+        Your GitHub stats, turned into a World-Cup-style player card rated out
+        of 99.
       </p>
 
       <form
@@ -51,9 +52,7 @@ export default function ScoutForm({
         className="m-0 flex max-w-[460px] flex-wrap gap-[10px] max-[860px]:mx-auto"
       >
         <div className="relative min-w-[200px] flex-1">
-          <span className="font-mono pointer-events-none absolute left-[18px] top-1/2 -translate-y-1/2 text-[17px] font-semibold text-brand/70">
-            @
-          </span>
+          <span className="font-mono pointer-events-none absolute left-[18px] top-1/2 -translate-y-1/2 text-[17px] font-semibold text-brand/70"></span>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -71,7 +70,11 @@ export default function ScoutForm({
         >
           {loading ? "SCOUTING…" : "SCOUT"}
           {!loading && (
-            <ArrowRight size={19} strokeWidth={2.6} className="transition-transform group-hover:translate-x-0.5" />
+            <ArrowRight
+              size={19}
+              strokeWidth={2.6}
+              className="transition-transform group-hover:translate-x-0.5"
+            />
           )}
         </button>
       </form>
@@ -87,11 +90,19 @@ export default function ScoutForm({
 
       <div className="mt-[14px] text-[13px] text-ink-mute">
         try{" "}
-        <button type="button" onClick={() => onScout("torvalds")} className={exampleClass}>
+        <button
+          type="button"
+          onClick={() => onScout("torvalds")}
+          className={exampleClass}
+        >
           torvalds
         </button>{" "}
         ·{" "}
-        <button type="button" onClick={() => onScout("sindresorhus")} className={exampleClass}>
+        <button
+          type="button"
+          onClick={() => onScout("sindresorhus")}
+          className={exampleClass}
+        >
           sindresorhus
         </button>{" "}
         · or your own
