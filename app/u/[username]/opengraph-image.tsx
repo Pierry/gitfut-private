@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { after } from "next/server";
 import { fetchProfile } from "@/lib/github/client";
 import { signalsFromPayload } from "@/lib/github/signals";
 import { buildCard } from "@/lib/scoring/engine";
@@ -61,7 +62,7 @@ async function flagDataUri(code: string): Promise<string | null> {
 export default async function Image({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
   const card = await tryCard(username);
-  if (card) void recordScout(); // count link unfurls (the OG image loads) too
+  if (card) after(() => recordScout()); // count link unfurls; flushed after response
   const accent = card ? TIER_ACCENT[card.finish] ?? "#39d353" : "#39d353";
   // The OG/file-convention route only receives `params` (never the URL query),
   // so the unfurl shows the card's GitHub-derived flag. A manual override is a

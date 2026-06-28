@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { headers } from "next/headers";
+import { after } from "next/server";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Background from "@/components/Background";
@@ -83,7 +84,7 @@ export default async function Page({
   // covers production visitors.)
   let card: Card | null = "card" in res ? res.card : null;
   if (card) {
-    void recordScout(); // best-effort analytics — don't block the render
+    after(() => recordScout()); // analytics, flushed after the response (serverless-safe)
     const ip = needsIpFallback(override, card.country) ? countryFromHeaders(await headers()) : null;
     card = { ...card, country: pickFlag(override, card.country, ip) ?? "" };
   }

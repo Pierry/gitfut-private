@@ -5,6 +5,7 @@ import { SAMPLE_CARDS } from "@/lib/github/samples";
 import { getViewerCountry } from "@/lib/ipgeo";
 import { needsIpFallback, pickFlag } from "@/lib/flagPriority";
 import { recordScout } from "@/lib/analytics";
+import { after } from "next/server";
 import type { Card } from "@/lib/scoring/types";
 
 // Resolve the card's flag by priority (override → GitHub → viewer IP). The IP
@@ -24,7 +25,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ username
   if (!process.env.GITHUB_TOKEN) {
     const sample = SAMPLE_CARDS.find((c) => c.login.toLowerCase() === username.toLowerCase());
     if (sample) {
-      void recordScout();
+      after(() => recordScout());
       return Response.json(await resolveCountry(sample, override, req));
     }
   }
