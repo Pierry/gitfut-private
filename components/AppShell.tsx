@@ -19,7 +19,7 @@ function GithubMark({ size = 15 }: { size?: number }) {
   );
 }
 
-export default function AppShell({ stars }: { stars: number | null }) {
+export default function AppShell({ stars, scoutCount }: { stars: number | null; scoutCount: number | null }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [pending, setPending] = useState<string | null>(null);
@@ -44,6 +44,7 @@ export default function AppShell({ stars }: { stars: number | null }) {
           <ScoutForm
             loading={isPending}
             error={null}
+            scoutCount={scoutCount}
             onScout={handleScout}
             onOpenModal={() => setModalOpen(true)}
           />

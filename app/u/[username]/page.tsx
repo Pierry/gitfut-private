@@ -9,6 +9,7 @@ import { buildCard } from "@/lib/scoring/engine";
 import { SAMPLE_CARDS } from "@/lib/github/samples";
 import { countryFromHeaders } from "@/lib/ipgeo";
 import { needsIpFallback, pickFlag } from "@/lib/flagPriority";
+import { recordScout } from "@/lib/analytics";
 import type { Card } from "@/lib/scoring/types";
 import ScoutRoute from "./ScoutRoute";
 
@@ -82,6 +83,7 @@ export default async function Page({
   // covers production visitors.)
   let card: Card | null = "card" in res ? res.card : null;
   if (card) {
+    void recordScout(); // best-effort analytics — don't block the render
     const ip = needsIpFallback(override, card.country) ? countryFromHeaders(await headers()) : null;
     card = { ...card, country: pickFlag(override, card.country, ip) ?? "" };
   }

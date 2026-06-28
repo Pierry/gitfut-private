@@ -7,6 +7,7 @@ import Mascot from "./Mascot";
 interface Props {
   loading: boolean;
   error: string | null;
+  scoutCount: number | null;
   onScout: (name: string) => void;
   onOpenModal: () => void;
 }
@@ -17,6 +18,7 @@ const exampleClass =
 export default function ScoutForm({
   loading,
   error,
+  scoutCount,
   onScout,
   onOpenModal,
 }: Props) {
@@ -121,25 +123,21 @@ export default function ScoutForm({
       {/* live tally — a broadcast-style scoreboard count; the number is the
           social proof, so it leads in the display face with tabular figures. */}
       <div className="mt-[20px] flex flex-wrap items-center gap-x-[14px] gap-y-[10px] max-[860px]:justify-center">
-        <span className="inline-flex items-baseline gap-[9px]">
-          <span
-            className="relative flex h-[7px] w-[7px] translate-y-[-1px] self-center"
-            aria-hidden
-          >
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-60" />
-            <span className="relative inline-flex h-[7px] w-[7px] rounded-full bg-brand" />
-          </span>
-          <span className="font-display text-[20px] leading-none tabular-nums text-ink">
-            12,480
-          </span>
-          <span className="text-[12px] text-ink-mute">
-            cards rated this window
-          </span>
-        </span>
-        <span
-          aria-hidden
-          className="h-[12px] w-px bg-white/[0.12] max-[860px]:hidden"
-        />
+        {scoutCount != null && (
+          <>
+            <span className="inline-flex items-baseline gap-[9px]">
+              <span className="relative flex h-[7px] w-[7px] translate-y-[-1px] self-center" aria-hidden>
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-60" />
+                <span className="relative inline-flex h-[7px] w-[7px] rounded-full bg-brand" />
+              </span>
+              <span className="font-display text-[20px] leading-none tabular-nums text-ink">
+                {scoutCount.toLocaleString("en-US")}
+              </span>
+              <span className="text-[12px] text-ink-mute">cards rated</span>
+            </span>
+            <span aria-hidden className="h-[12px] w-px bg-white/[0.12] max-[860px]:hidden" />
+          </>
+        )}
         <button
           type="button"
           onClick={onOpenModal}

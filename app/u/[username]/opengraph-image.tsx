@@ -5,6 +5,7 @@ import { buildCard } from "@/lib/scoring/engine";
 import { SAMPLE_CARDS } from "@/lib/github/samples";
 import { pickFlag } from "@/lib/flagPriority";
 import { deEmDash } from "@/lib/text";
+import { recordScout } from "@/lib/analytics";
 import type { Card, StatKey } from "@/lib/scoring/types";
 
 export const runtime = "nodejs";
@@ -60,6 +61,7 @@ async function flagDataUri(code: string): Promise<string | null> {
 export default async function Image({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
   const card = await tryCard(username);
+  if (card) void recordScout(); // count link unfurls (the OG image loads) too
   const accent = card ? TIER_ACCENT[card.finish] ?? "#39d353" : "#39d353";
   // The OG/file-convention route only receives `params` (never the URL query),
   // so the unfurl shows the card's GitHub-derived flag. A manual override is a
