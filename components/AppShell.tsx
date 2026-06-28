@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
 import ScoutForm from "@/components/ScoutForm";
@@ -24,6 +24,15 @@ export default function AppShell({ stars, scoutCount }: { stars: number | null; 
   const [isPending, startTransition] = useTransition();
   const [pending, setPending] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+
+  // Mark this tab as "has visited home" so a scouted card shows BACK, while a
+  // directly-opened / shared card link (no home visit) shows a "make your card"
+  // CTA instead. sessionStorage is per-tab, so a fresh tab from a share is direct.
+  useEffect(() => {
+    try {
+      sessionStorage.setItem("gitfut:seen-home", "1");
+    } catch {}
+  }, []);
 
   // Scouting navigates to the canonical /<username> route. The transition keeps
   // the loading screen up (with the mascot + puns) while the report is fetched

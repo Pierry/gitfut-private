@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { ArrowLeft } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { Card } from "@/lib/scoring/types";
 import PlayerCard from "./PlayerCard";
 import CardActions from "./CardActions";
@@ -40,6 +40,20 @@ export default function ResultView({ card, onBack, onCountryChange, shareSig, ge
   const theme = RESULT_THEME[card.finish];
   const phase = useReveal(card.finish);
 
+  // BACK when the visitor came from home this tab; otherwise (direct / shared
+  // link) a CTA to make their own card. Default to the CTA so share-link
+  // visitors — the growth case — see it without a flash.
+  const [seenHome, setSeenHome] = useState(false);
+  useEffect(() => {
+    let seen = false;
+    try {
+      seen = sessionStorage.getItem("gitfut:seen-home") === "1";
+    } catch {}
+    // Deferred (not a synchronous set-in-effect) so it can't cascade a render.
+    const t = setTimeout(() => setSeenHome(seen), 0);
+    return () => clearTimeout(t);
+  }, []);
+
   // Fire confetti when the rare-tier reveal hits its burst.
   useEffect(() => {
     if (phase === "burst") {
@@ -68,10 +82,23 @@ export default function ResultView({ card, onBack, onCountryChange, shareSig, ge
       <div className="mb-[8px] mt-[clamp(8px,2vh,18px)] flex shrink-0 items-center gap-[10px] self-start">
         <button
           onClick={onBack}
-          className="group inline-flex items-center gap-[6px] text-[13px] font-medium tracking-wide text-ink-faint transition hover:text-ink"
+          className={
+            seenHome
+              ? "group inline-flex items-center gap-[6px] text-[13px] font-medium tracking-wide text-ink-faint transition hover:text-ink"
+              : "group inline-flex items-center gap-[6px] text-[13px] font-semibold tracking-wide text-brand transition hover:text-brand-hi"
+          }
         >
-          <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-0.5" />
-          BACK
+          {seenHome ? (
+            <>
+              <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-0.5" />
+              BACK
+            </>
+          ) : (
+            <>
+              <ArrowLeft size={16} className="transition-transform group-hover:translate-x-0.5" />
+              GET SCOUTED
+            </>
+          )}
         </button>
         <Mascot size={40} kick={false} ball={false} animate={false} />
       </div>

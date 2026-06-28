@@ -78,6 +78,10 @@ function PlayerCard({ card }: { card: Card }) {
     width: "100%",
     aspectRatio: "540 / 820",
     filter: `drop-shadow(0 7cqw 10cqw rgba(0,0,0,.5)) drop-shadow(0 0 6cqw ${t.glow})`,
+    // The card reads as one graphic — no text selection / iOS long-press menu.
+    userSelect: "none",
+    WebkitUserSelect: "none",
+    WebkitTouchCallout: "none",
   };
 
   const at = (left: number, top: number): CSSProperties => ({

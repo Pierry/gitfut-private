@@ -14,7 +14,8 @@ export function signalsFromPayload(p: RawPayload, now = Date.now()): Signals {
   const max_repo_stars = p.repos.reduce((m, r) => Math.max(m, r.stars), 0);
   const langs = new Set(p.repos.map((r) => r.language).filter(Boolean) as string[]);
   const languages = langs.size;
-  // Primary languages ranked by repo count — the #1 drives the card's language logo.
+  // Primary languages ranked by repo count, programming languages floated above
+  // styling/markup (CSS/HTML) — the #1 drives the card's language + logo.
   const rankedLanguages = rankLanguages(p.repos);
 
   const years = new Set<number>();

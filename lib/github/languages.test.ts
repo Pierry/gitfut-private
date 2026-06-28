@@ -23,6 +23,17 @@ describe("rankLanguages", () => {
     expect(rankLanguages(repos("Rust", null, "Rust", null))).toEqual(["Rust"]);
   });
 
+  it("demotes styling/markup below real programming languages", () => {
+    // GitHub reports a byte-heavy repo as CSS; Python should still headline.
+    expect(
+      rankLanguages(repos("CSS", "CSS", "CSS", "CSS", "Python", "Python", "Python", "HTML")),
+    ).toEqual(["Python", "CSS", "HTML"]);
+  });
+
+  it("keeps styling languages when there's no programming language", () => {
+    expect(rankLanguages(repos("CSS", "CSS", "HTML"))).toEqual(["CSS", "HTML"]);
+  });
+
   it("returns an empty list when there are no languages", () => {
     expect(rankLanguages(repos(null, null))).toEqual([]);
     expect(rankLanguages([])).toEqual([]);
@@ -59,6 +70,15 @@ describe("topLanguageLogo", () => {
 
   it("returns null when no ranked language has a logo", () => {
     expect(topLanguageLogo(["Rust", "Shell"])).toBeNull();
+  });
+
+  it("never uses a styling/markup logo when a programming language exists", () => {
+    expect(topLanguageLogo(["Rust", "CSS"])).toBeNull();
+    expect(topLanguageLogo(["Python", "CSS"])).toEqual({ name: "Python", slug: "python" });
+  });
+
+  it("uses a styling logo only when there's no programming language", () => {
+    expect(topLanguageLogo(["CSS", "HTML"])).toEqual({ name: "CSS", slug: "css" });
   });
 
   it("returns null for an empty list", () => {
