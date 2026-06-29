@@ -2,6 +2,12 @@ import type { Family, Finish, FounderMeta, StatKey, Stats } from "./types";
 
 export const STATS: StatKey[] = ["pac", "sho", "pas", "dri", "def", "phy"];
 
+// The attacking/technical four share sub-skills in real FUT cards (dribbling and
+// pace pull from the same agility/balance traits, etc.), so they're kept cohesive
+// — pulled toward their own group mean after the spike. DEF/PHY stay free: role
+// explains those (attackers are simply poor defenders), so they may break away.
+export const ATTACK_STATS: StatKey[] = ["pac", "sho", "pas", "dri"];
+
 export const K = {
   magnitude: { w1: 0.5, w2: 0.4, w3: 0.5, w4: 0.08, b: -2.8, lo: 48, hi: 82 },
   tension: {
@@ -12,7 +18,7 @@ export const K = {
       ["pac", "def"],
     ] as [StatKey, StatKey][],
   },
-  spike: { base: 8 },
+  spike: { base: 8, cohesion: 0.6 },
   legacy: { a: 1.0, b: 0.7, c: 0.3, d: 0.3, e: 0.3, f: 6.0, activeCap: 15, bonusMax: 11 },
   ovrCap: 88,
   finish: { iconMin: 90, totyMin: 85, totyLegacy: 0.5, goldMin: 75, silverMin: 65 },

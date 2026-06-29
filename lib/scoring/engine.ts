@@ -1,7 +1,7 @@
 import { countryForLogin } from "../geo";
 import { topLanguageLogo } from "../github/languages";
 import { deriveMetrics, deriveSkillMoves, deriveStyle, deriveWeakFoot, deriveWorkRate } from "./attributes";
-import { FINISH_LABELS, FOUNDER_OVERALL, FOUNDERS, K, STATS, WEIGHTS } from "./constants";
+import { ATTACK_STATS, FINISH_LABELS, FOUNDER_OVERALL, FOUNDERS, K, STATS, WEIGHTS } from "./constants";
 import { derivePlaystyles } from "./playstyles";
 import type {
   Archetype,
@@ -23,14 +23,16 @@ const mean = (a: number[]) => a.reduce((s, x) => s + x, 0) / a.length;
 const vals = (s: Profile) => STATS.map((k) => s[k]);
 
 // §2 — raw estimates, tuned so the six land on a comparable scale.
-const normTempo = (s: Signals) => clamp(Lg(s.recent_contributions) / 3.2, 0, 1);
-
 function rawStats(s: Signals): Stats {
   const o: Stats = {
-    pac: 40 + 24 * normTempo(s),
+    pac: 36 + 12 * Lg(s.recent_contributions),
     sho: 36 + 13 * Lg(s.total_stars_owned) + 5 * Lg(s.max_repo_stars),
     pas: 40 + 12 * Lg(s.prs_to_others) + 9 * Lg(s.followers),
-    dri: 44 + 6 * Math.min(s.languages, 9) + Math.min(3, s.languages * 0.3),
+    // DRI = genuine range, square-root scaled so breadth has diminishing returns:
+    // ~65 at one language, ~80 at ten, ~85 at fifteen. The old linear count
+    // saturated (8 languages already ~94, maxed at 9), letting a noisy signal own
+    // the card and crown every polyglot a Fantasista.
+    dri: 58 + 7 * Math.sqrt(s.languages),
     def: 40 + 14 * Lg(s.reviews + s.issues_closed),
     phy: 40 + 9 * Lg(s.total_contributions_lifetime) + 2.2 * Math.min(s.active_years, 12),
   };
@@ -78,8 +80,16 @@ function spike(p: Profile, c: number): Stats {
   const lop = clamp((Math.max(...v) - Math.min(...v)) / 4, 0, 1);
   const spread = K.spike.base * (1 + lop);
   const m = mean(v);
+  const raw = {} as Stats;
+  STATS.forEach((k) => (raw[k] = c + spread * (p[k] - m)));
+  // §3.5 — attacking cohesion: the technical four share sub-skills, so pull them
+  // toward their own group mean (preserving order and their collective level)
+  // before rounding. This kills the random-looking 18pt gaps between attacking
+  // stats; DEF/PHY are left free to break away (role explains them).
+  const am = mean(ATTACK_STATS.map((k) => raw[k]));
+  ATTACK_STATS.forEach((k) => (raw[k] = am + K.spike.cohesion * (raw[k] - am)));
   const stats = {} as Stats;
-  STATS.forEach((k) => (stats[k] = clamp(Math.round(c + spread * (p[k] - m)), 1, 99)));
+  STATS.forEach((k) => (stats[k] = clamp(Math.round(raw[k]), 1, 99)));
   return stats;
 }
 
