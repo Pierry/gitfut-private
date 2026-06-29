@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Card } from "@/lib/scoring/types";
-import { cardUrl, intentUrl, nativeSharePayload, shareMessage, shareText } from "./share";
+import { cardUrl, intentUrl, nativeSharePayload, shareMessage, shareText } from "@/lib/share";
 
 // We test the share DECISIONS: correct platform endpoints, well-formed encoded
 // URLs, stable per-login text, brag-led message. Not the React wiring.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildCard } from "./engine";
-import type { Signals } from "./types";
+import { buildCard } from "@/lib/scoring/engine";
+import type { Signals } from "@/lib/scoring/types";
 
 // A modest, non-founder profile — exercises the normal scoring path.
 const base: Signals = {

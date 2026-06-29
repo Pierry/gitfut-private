@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SAMPLE_CARDS } from "./samples";
+import { SAMPLE_CARDS } from "@/lib/github/samples";
 
 // Locks the showcase invariants: pinned origin countries, and the language logo
 // matching the headline language (no fall-through to a different icon).

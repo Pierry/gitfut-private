@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { comboboxReducer, initialComboboxState, type ComboboxState } from "./comboboxNav";
+import { comboboxReducer, initialComboboxState, type ComboboxState } from "@/lib/comboboxNav";
 
 const s = (over: Partial<ComboboxState> = {}): ComboboxState => ({ ...initialComboboxState, ...over });
 

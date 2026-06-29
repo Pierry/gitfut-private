@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Finish } from "@/lib/scoring/types";
-import { hasBurst, sequenceDuration, sequenceFor } from "./reveal";
+import { hasBurst, sequenceDuration, sequenceFor } from "@/lib/reveal";
 
 // We test the DECISIONS the sequencer encodes (which tiers earn a burst, the
 // reduced-motion collapse, phase ordering) — not the animation rendering.

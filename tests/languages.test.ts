@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { languageLogoUrl, logoSlugFor, rankLanguages, topLanguageLogo } from "./languages";
+import { languageLogoUrl, logoSlugFor, rankLanguages, topLanguageLogo } from "@/lib/github/languages";
 
 // We test the language DECISIONS: deterministic ranking with markup demotion, the
 // GitHub-name→Devicon-id map (incl. display names + the Go wordmark), and that the

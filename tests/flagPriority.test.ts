@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { needsIpFallback, pickFlag } from "./flagPriority";
+import { needsIpFallback, pickFlag } from "@/lib/flagPriority";
 
 // The flag-priority contract: override → GitHub → IP, each validated against the
 // shipped flag set. This is the behavioural heart of the new report-edit flow.

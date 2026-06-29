@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     environment: "node",
-    include: ["**/*.test.ts"],
+    // All unit tests live in /tests (kept out of lib/ so source folders stay clean).
+    include: ["tests/**/*.test.ts"],
   },
 });

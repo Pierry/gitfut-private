@@ -5,7 +5,7 @@ import {
   isValidCountry,
   normalizeCountry,
   searchCountries,
-} from "./countries";
+} from "@/lib/countries";
 
 // The picker can only ever offer a country we ship a flag for, so these guard
 // the data contract (no pseudo-flags, no 404s) and the search behaviour the UI

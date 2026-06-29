@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { countryFromHeaders, getViewerCountry } from "./ipgeo";
+import { countryFromHeaders, getViewerCountry } from "@/lib/ipgeo";
 
 // The header path is pure and is the production fast path, so it carries the
 // weight of these tests. The fetch fallback is exercised with a stubbed global.
