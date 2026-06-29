@@ -5,6 +5,7 @@ import Link from "next/link";
 import Background from "@/components/Background";
 import { type GithubError } from "@/lib/github/client";
 import { scoutCard } from "@/lib/scout";
+import { getRepoStars } from "@/lib/github/stars";
 import { pickFlag } from "@/lib/flagPriority";
 import { recordScout } from "@/lib/analytics";
 import type { Card } from "@/lib/scoring/types";
@@ -75,16 +76,19 @@ export default async function Page({
 }) {
   const { username } = await params;
   const { country: override } = await searchParams;
-  const res = await loadCard(username);
+  // Stars feed the footer "Support the project" link; fetched alongside the
+  // scout (its own 1h cache keeps it cheap) so the report matches the home page.
+  const [res, stars] = await Promise.all([loadCard(username), getRepoStars()]);
   // Flag priority: a shared-link ?country= override wins, else the GitHub-derived
   // country. No IP/geo fallback — we never put the *viewer's* country on someone
   // else's card.
   let card: Card | null = "card" in res ? res.card : null;
   let generateShare = false;
   let shareSig = "";
+  let canonicalCountry = ""; // GitHub-derived flag; share links omit ?country= unless overridden
   if (card) {
     after(() => recordScout()); // analytics, flushed after the response (serverless-safe)
-    const canonicalCountry = pickFlag(null, card.country) ?? ""; // GitHub-derived only
+    canonicalCountry = pickFlag(null, card.country) ?? ""; // GitHub-derived only
     const displayCountry = pickFlag(override, card.country) ?? "";
     card = { ...card, country: displayCountry };
     const img = await getCardImage(card.login);
@@ -99,7 +103,13 @@ export default async function Page({
     <div className="relative min-h-screen overflow-x-hidden text-ink">
       <Background />
       {card ? (
-        <ScoutRoute card={card} shareSig={shareSig} generateShare={generateShare} />
+        <ScoutRoute
+          card={card}
+          shareSig={shareSig}
+          generateShare={generateShare}
+          stars={stars}
+          canonicalCountry={canonicalCountry}
+        />
       ) : (
         <NotScouted username={username} error={(res as { error: GithubError }).error} />
       )}

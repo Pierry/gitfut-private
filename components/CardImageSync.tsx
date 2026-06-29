@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { toCanvas } from "html-to-image";
 import { upload } from "@vercel/blob/client";
+import { renderCardImage } from "@/lib/capture";
 
 // Generates the shareable card image the same way Download does (the real card
 // node, via html-to-image) and uploads it to Vercel Blob once, so embeds and OG
@@ -26,8 +27,11 @@ export default function CardImageSync({
       const node = targetRef.current;
       if (!node) return;
       try {
-        await document.fonts.ready;
-        const canvas = await toCanvas(node, { pixelRatio: 2, cacheBust: true });
+        // Capture the signed off-screen clone so the embedded/OG image carries
+        // the gitfut.com signature without flashing it on the live card.
+        const canvas = await renderCardImage(node, (n) =>
+          toCanvas(n, { pixelRatio: 2, cacheBust: true }),
+        );
         const blob = await new Promise<Blob | null>((resolve) =>
           canvas.toBlob((b) => resolve(b), "image/webp", 0.9),
         );

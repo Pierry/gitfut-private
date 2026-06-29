@@ -262,6 +262,16 @@
   }
 }
 
+/* Card signature (gitfut.com + @handle) — hidden on the live card, painted only
+   into exported images. CardActions / CardImageSync capture an off-screen clone
+   tagged `.gitfut-capturing`, which reveals it. See lib/capture.ts. */
+.gitfut-signature {
+  display: none;
+}
+.gitfut-capturing .gitfut-signature {
+  display: block;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

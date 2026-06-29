@@ -15,10 +15,14 @@ export default function ScoutRoute({
   card: initial,
   shareSig,
   generateShare,
+  stars,
+  canonicalCountry,
 }: {
   card: Card;
   shareSig?: string;
   generateShare?: boolean;
+  stars: number | null;
+  canonicalCountry: string;
 }) {
   const router = useRouter();
   const [card, setCard] = useState(initial);
@@ -46,6 +50,8 @@ export default function ScoutRoute({
       onCountryChange={onCountryChange}
       shareSig={shareSig}
       generateShare={generateShare && !overridden}
+      stars={stars}
+      canonicalCountry={canonicalCountry}
     />
   );
 }

@@ -8,6 +8,8 @@ import CardActions from "./CardActions";
 import CardImageSync from "./CardImageSync";
 import FlagPicker from "./FlagPicker";
 import Mascot from "./Mascot";
+import SupportLink from "./SupportLink";
+import HowItWorksModal from "./HowItWorksModal";
 import { AttributesPanel, MetricsPanel, ReportHeader } from "./ScoutReport";
 import { resolveResultTheme } from "./finishTheme";
 import { useReveal } from "@/hooks/useReveal";
@@ -22,6 +24,10 @@ interface Props {
   shareSig?: string;
   /** When true (image missing/stale), render + upload the share image to Blob. */
   generateShare?: boolean;
+  /** Repo stars for the "Support the project" footer link (null = plain link). */
+  stars?: number | null;
+  /** GitHub-derived flag; share links only carry ?country= when it's overridden. */
+  canonicalCountry?: string;
 }
 
 // Card width scales with the viewport but is bounded by BOTH width and height
@@ -35,10 +41,19 @@ const CONFETTI: Record<string, string[]> = {
   totw: ["#39d353", "#e9cc74", "#ffffff", "#7fa8ff"],
 };
 
-export default function ResultView({ card, onBack, onCountryChange, shareSig, generateShare }: Props) {
+export default function ResultView({
+  card,
+  onBack,
+  onCountryChange,
+  shareSig,
+  generateShare,
+  stars,
+  canonicalCountry = "",
+}: Props) {
   const captureRef = useRef<HTMLDivElement>(null);
   const theme = resolveResultTheme(card);
   const phase = useReveal(card.finish);
+  const [modalOpen, setModalOpen] = useState(false);
 
   // BACK when the visitor came from home this tab; otherwise (direct / shared
   // link) a CTA to make their own card. Default to the CTA so share-link
@@ -68,7 +83,8 @@ export default function ResultView({ card, onBack, onCountryChange, shareSig, ge
   const ignited = phase === "ignite" || phase === "burst" || phase === "freeze";
 
   return (
-    <main className="relative z-[2] mx-auto flex min-h-[100dvh] w-full max-w-[1280px] flex-col px-[clamp(16px,4vw,22px)] pb-[clamp(28px,5vh,52px)]">
+    <>
+    <main className="relative z-[2] mx-auto flex min-h-[100dvh] w-full max-w-[1280px] flex-col px-[clamp(16px,4vw,22px)]">
       {/* Tier-reactive backdrop: dims the global green wash and lets the card's
           own tier color own the result screen (green is the action, the card is
           the prize — they shouldn't fight here). Fades in with the reveal. */}
@@ -82,29 +98,38 @@ export default function ResultView({ card, onBack, onCountryChange, shareSig, ge
         }}
       />
 
-      {/* top-left: BACK button with the mascot alongside it */}
-      <div className="mb-[8px] mt-[clamp(8px,2vh,18px)] flex shrink-0 items-center gap-[10px] self-start">
+      {/* top bar: BACK button + mascot on the left, "how it works" on the right */}
+      <div className="mb-[8px] mt-[clamp(8px,2vh,18px)] flex w-full shrink-0 items-center justify-between gap-[10px]">
+        <div className="flex items-center gap-[10px]">
+          <button
+            onClick={onBack}
+            className={
+              seenHome
+                ? "group inline-flex items-center gap-[6px] text-[13px] font-medium tracking-wide text-ink-faint transition hover:text-ink"
+                : "group inline-flex items-center gap-[6px] text-[13px] font-semibold tracking-wide text-brand transition hover:text-brand-hi"
+            }
+          >
+            {seenHome ? (
+              <>
+                <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-0.5" />
+                BACK
+              </>
+            ) : (
+              <>
+                <ArrowLeft size={16} className="transition-transform group-hover:translate-x-0.5" />
+                GET SCOUTED
+              </>
+            )}
+          </button>
+          <Mascot size={40} kick={false} ball={false} animate={false} />
+        </div>
         <button
-          onClick={onBack}
-          className={
-            seenHome
-              ? "group inline-flex items-center gap-[6px] text-[13px] font-medium tracking-wide text-ink-faint transition hover:text-ink"
-              : "group inline-flex items-center gap-[6px] text-[13px] font-semibold tracking-wide text-brand transition hover:text-brand-hi"
-          }
+          type="button"
+          onClick={() => setModalOpen(true)}
+          className="cursor-pointer text-[12.5px] font-semibold text-ink-soft underline-offset-2 transition hover:text-brand hover:underline"
         >
-          {seenHome ? (
-            <>
-              <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-0.5" />
-              BACK
-            </>
-          ) : (
-            <>
-              <ArrowLeft size={16} className="transition-transform group-hover:translate-x-0.5" />
-              GET SCOUTED
-            </>
-          )}
+          how it works ↗
         </button>
-        <Mascot size={40} kick={false} ball={false} animate={false} />
       </div>
 
       <div className="shrink-0">
@@ -152,7 +177,7 @@ export default function ResultView({ card, onBack, onCountryChange, shareSig, ge
             <FlagPicker value={card.country} onChange={onCountryChange} />
           </div>
           <div style={{ width: CARD_WIDTH }}>
-            <CardActions card={card} targetRef={captureRef} />
+            <CardActions card={card} targetRef={captureRef} canonicalCountry={canonicalCountry} />
           </div>
         </div>
 
@@ -164,9 +189,16 @@ export default function ResultView({ card, onBack, onCountryChange, shareSig, ge
         </div>
       </div>
 
+      <footer className="relative z-[2] mt-auto flex flex-none items-center justify-center p-[clamp(12px,2.6vh,24px)]">
+        <SupportLink stars={stars ?? null} />
+      </footer>
+
       {generateShare && shareSig && (
         <CardImageSync targetRef={captureRef} login={card.login} sig={shareSig} />
       )}
     </main>
+
+    {modalOpen && <HowItWorksModal onClose={() => setModalOpen(false)} />}
+    </>
   );
 }

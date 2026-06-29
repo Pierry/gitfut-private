@@ -5,6 +5,7 @@ import { toBlob, toPng } from "html-to-image";
 import { Check, Copy, Download, Link2, Share2 } from "lucide-react";
 import type { Card } from "@/lib/scoring/types";
 import { cardUrl, intentUrl, nativeSharePayload } from "@/lib/share";
+import { renderCardImage } from "@/lib/capture";
 import { resolveResultTheme } from "./finishTheme";
 
 const RENDER_OPTS = { pixelRatio: 3, cacheBust: true } as const;
@@ -43,8 +44,9 @@ const EXPORTS: ExportAction[] = [
     done: "Saved",
     icon: Download,
     run: async (node, card) => {
-      await document.fonts.ready; // local FUT fonts must be loaded before capture
-      const url = await toPng(node, RENDER_OPTS);
+      // renderCardImage awaits fonts and captures an off-screen clone that
+      // carries the gitfut.com signature (hidden on the live card).
+      const url = await renderCardImage(node, (n) => toPng(n, RENDER_OPTS));
       const a = document.createElement("a");
       a.download = `${card.login}-gitfut.png`;
       a.href = url;
@@ -63,12 +65,11 @@ const EXPORTS: ExportAction[] = [
       // activation lapse → NotAllowedError. The browser awaits the blob itself.
       await navigator.clipboard.write([
         new ClipboardItem({
-          "image/png": (async () => {
-            await document.fonts.ready;
-            const blob = await toBlob(node, RENDER_OPTS);
+          "image/png": renderCardImage(node, async (n) => {
+            const blob = await toBlob(n, RENDER_OPTS);
             if (!blob) throw new Error("render returned no image");
             return blob;
-          })(),
+          }),
         }),
       ]);
     },
@@ -94,9 +95,12 @@ const brandHover = (brand: string) => ({
 export default function CardActions({
   card,
   targetRef,
+  canonicalCountry = "",
 }: {
   card: Card;
   targetRef: React.RefObject<HTMLDivElement | null>;
+  /** GitHub-derived flag; the share link only carries ?country= when overridden. */
+  canonicalCountry?: string;
 }) {
   const [done, setDone] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -122,6 +126,12 @@ export default function CardActions({
   // founder → their accent).
   const tier = resolveResultTheme(card).ink;
 
+  // The share/copy link carries ?country= ONLY when the flag is a manual override
+  // (differs from the GitHub-derived default). Otherwise we strip it so the URL
+  // stays clean — the recipient still resolves to the same canonical flag.
+  const shareCard =
+    card.country && card.country !== canonicalCountry ? card : { ...card, country: "" };
+
   const runExport = async (a: ExportAction) => {
     const node = targetRef.current;
     if (!node || busy) return;
@@ -144,10 +154,10 @@ export default function CardActions({
   // Instagram Stories). Tries to attach the card image; falls back to text+url.
   const nativeShare = async () => {
     const node = targetRef.current;
-    const payload = nativeSharePayload(card);
+    const payload = nativeSharePayload(shareCard);
     try {
       if (node && "canShare" in navigator) {
-        const blob = await toBlob(node, RENDER_OPTS);
+        const blob = await renderCardImage(node, (n) => toBlob(n, RENDER_OPTS));
         if (blob) {
           const file = new File([blob], `${card.login}-gitfut.png`, { type: "image/png" });
           if (navigator.canShare?.({ files: [file] })) {
@@ -159,13 +169,13 @@ export default function CardActions({
       await navigator.share(payload);
     } catch (e) {
       if (e instanceof Error && e.name === "AbortError") return; // user dismissed
-      window.open(intentUrl("x", card), "_blank", "noopener,noreferrer");
+      window.open(intentUrl("x", shareCard), "_blank", "noopener,noreferrer");
     }
   };
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(cardUrl(card));
+      await navigator.clipboard.writeText(cardUrl(shareCard));
       setLinkCopied(true);
       if (copiedTimer.current) clearTimeout(copiedTimer.current);
       copiedTimer.current = setTimeout(() => setLinkCopied(false), 1600);
@@ -197,7 +207,7 @@ export default function CardActions({
       <div className="grid w-full grid-cols-3 gap-[8px]">
         <button
           type="button"
-          onClick={() => window.open(intentUrl("x", card), "_blank", "noopener,noreferrer")}
+          onClick={() => window.open(intentUrl("x", shareCard), "_blank", "noopener,noreferrer")}
           title="Share on X"
           aria-label="Share on X"
           className={PLATFORM_BTN}
@@ -209,7 +219,7 @@ export default function CardActions({
         </button>
         <button
           type="button"
-          onClick={() => window.open(intentUrl("linkedin", card), "_blank", "noopener,noreferrer")}
+          onClick={() => window.open(intentUrl("linkedin", shareCard), "_blank", "noopener,noreferrer")}
           title="Share on LinkedIn"
           aria-label="Share on LinkedIn"
           className={PLATFORM_BTN}
