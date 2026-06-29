@@ -3,7 +3,7 @@
 import { memo, type CSSProperties } from "react";
 import type { Card, StatKey } from "@/lib/scoring/types";
 import { languageLogoUrl } from "@/lib/github/languages";
-import { CARD_THEME } from "./finishTheme";
+import { resolveCardTheme } from "./finishTheme";
 
 // Faithful port of the Python FUT generator's 540×820 layout. Positions are
 // percentages of the card (x/540, y/820); font sizes are cqw (px/540×100) so the
@@ -60,7 +60,7 @@ const hideOnError: React.ReactEventHandler<HTMLImageElement> = (e) => {
 };
 
 function PlayerCard({ card }: { card: Card }) {
-  const t = CARD_THEME[card.finish];
+  const t = resolveCardTheme(card);
   const ink = t.ink;
   const full = card.name.trim();
   const displayName = (

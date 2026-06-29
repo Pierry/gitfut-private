@@ -5,7 +5,7 @@ import { toBlob, toPng } from "html-to-image";
 import { Check, Copy, Download, Link2, Share2 } from "lucide-react";
 import type { Card } from "@/lib/scoring/types";
 import { cardUrl, intentUrl, nativeSharePayload } from "@/lib/share";
-import { RESULT_THEME } from "./finishTheme";
+import { resolveResultTheme } from "./finishTheme";
 
 const RENDER_OPTS = { pixelRatio: 3, cacheBust: true } as const;
 
@@ -118,8 +118,9 @@ export default function CardActions({
   }, []);
 
   // Download CTA picks up the card's own tier color so the action matches the
-  // card the user is saving (bronze → bronze, silver → silver, TOTY → blue …).
-  const tier = RESULT_THEME[card.finish].ink;
+  // card the user is saving (bronze → bronze, silver → silver, TOTY → blue,
+  // founder → their accent).
+  const tier = resolveResultTheme(card).ink;
 
   const runExport = async (a: ExportAction) => {
     const node = targetRef.current;

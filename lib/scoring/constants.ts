@@ -1,4 +1,4 @@
-import type { Family, Finish, StatKey, Stats } from "./types";
+import type { Family, Finish, FounderMeta, StatKey, Stats } from "./types";
 
 export const STATS: StatKey[] = ["pac", "sho", "pas", "dri", "def", "phy"];
 
@@ -32,4 +32,30 @@ export const FINISH_LABELS: Record<Finish, string> = {
   totw: "IN-FORM",
   toty: "TOTY",
   icon: "ICON",
+  founder: "FOUNDER",
+};
+
+// The people who built gitfut. Keyed by LOWERCASE GitHub login; matched
+// case-insensitively in buildCard. Each gets a forced overall (>89), bespoke
+// card art (public/cards), and an accent that tints their card + scout report.
+export const FOUNDERS: Record<string, FounderMeta> = {
+  younesfdj: {
+    art: "/cards/founder-red.png",
+    accent: "#ff2f45",
+    label: "FOUNDER",
+    tagline: "Co-founder of gitfut",
+  },
+  mawsis: {
+    art: "/cards/founder-chrome.png",
+    accent: "#d8dde3",
+    label: "FOUNDER",
+    tagline: "Co-founder of gitfut",
+  },
+};
+
+// Forced overalls (kept beside FOUNDERS but separate so the FounderMeta shape
+// stays presentation-only). Both are >89 by design.
+export const FOUNDER_OVERALL: Record<string, number> = {
+  younesfdj: 93,
+  mawsis: 91,
 };

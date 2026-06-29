@@ -22,6 +22,7 @@ const TIER_ACCENT: Record<string, string> = {
   totw: "#7fa8ff",
   toty: "#7fa8ff",
   icon: "#e9cc74",
+  founder: "#ff2f45",
 };
 
 const STAT_ORDER: { k: StatKey; l: string }[] = [
@@ -63,7 +64,8 @@ export default async function Image({ params }: { params: Promise<{ username: st
   const { username } = await params;
   const card = await tryCard(username);
   if (card) after(() => recordScout()); // count link unfurls; flushed after response
-  const accent = card ? TIER_ACCENT[card.finish] ?? "#39d353" : "#39d353";
+  // Founders tint the unfurl to their own accent; other tiers use the map.
+  const accent = card ? (card.founder?.accent ?? TIER_ACCENT[card.finish] ?? "#39d353") : "#39d353";
   // The OG/file-convention route only receives `params` (never the URL query),
   // so the unfurl shows the card's GitHub-derived flag. A manual override is a
   // personal/session tweak and isn't reflected in the social preview.

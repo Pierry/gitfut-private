@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   Clock,
+  Crown,
   FastForward,
   Flame,
   FolderGit2,
@@ -19,7 +20,7 @@ import type { Card, Finish, Metric, Playstyle } from "@/lib/scoring/types";
 import { languageLogoUrl } from "@/lib/github/languages";
 import { formatCount } from "@/lib/format";
 import { deEmDash } from "@/lib/text";
-import { RESULT_THEME } from "./finishTheme";
+import { resolveResultTheme, rgba } from "./finishTheme";
 
 const PLAYSTYLE_ICONS: Record<string, LucideIcon> = {
   star: Star,
@@ -48,6 +49,7 @@ const VERDICTS: Record<Finish, string> = {
   gold: "First-team ready",
   silver: "Squad rotation",
   bronze: "One to watch",
+  founder: "The architect",
 };
 
 // Lightweight hover popup explaining why a value was given.
@@ -219,7 +221,7 @@ function Stagger({ step, children, className }: { step: number; children: React.
 // the name as hero, one clean meta line, and the verdict inline. No centered
 // stack, no floating pill, no decorative flanking rules.
 export function ReportHeader({ card }: { card: Card }) {
-  const theme = RESULT_THEME[card.finish];
+  const theme = resolveResultTheme(card);
   const accent = theme.ink;
   return (
     <header className="relative mx-auto flex max-w-[640px] items-center gap-[clamp(16px,3vw,28px)]">
@@ -283,6 +285,21 @@ export function ReportHeader({ card }: { card: Card }) {
             >
               {card.position}
             </span>
+            {card.founder && (
+              <Tip text={card.founder.tagline}>
+                <span
+                  className="font-display inline-flex items-center gap-[5px] rounded-[6px] border px-[9px] py-[3px] text-[12.5px] font-bold leading-none tracking-[.14em]"
+                  style={{
+                    color: card.founder.accent,
+                    borderColor: rgba(card.founder.accent, 0.45),
+                    background: rgba(card.founder.accent, 0.14),
+                  }}
+                >
+                  <Crown size={13} aria-hidden style={{ fill: card.founder.accent }} />
+                  {card.founder.label}
+                </span>
+              </Tip>
+            )}
             <span className="text-[14px] font-medium text-ink-dim">{card.archetype}</span>
             <span aria-hidden className="h-[11px] w-px bg-white/15" />
             <a
@@ -329,7 +346,7 @@ export function ReportHeader({ card }: { card: Card }) {
 
 // Left side: attributes + playstyles.
 export function AttributesPanel({ card }: { card: Card }) {
-  const accent = RESULT_THEME[card.finish].ink;
+  const accent = resolveResultTheme(card).ink;
   const { report } = card;
   return (
     <div className="flex w-full flex-col gap-[14px]">
@@ -367,7 +384,7 @@ export function AttributesPanel({ card }: { card: Card }) {
 
 // Right side: scouting metrics.
 export function MetricsPanel({ card }: { card: Card }) {
-  const accent = RESULT_THEME[card.finish].ink;
+  const accent = resolveResultTheme(card).ink;
   return (
     <Section title="SCOUTING METRICS" accent={accent} className="w-full">
       <div className="flex flex-col gap-[13px] pt-1">

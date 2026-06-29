@@ -2,7 +2,7 @@ export type StatKey = "pac" | "sho" | "pas" | "dri" | "def" | "phy";
 export type Stats = Record<StatKey, number>;
 export type Profile = Record<StatKey, number>;
 
-export type Finish = "bronze" | "silver" | "gold" | "totw" | "toty" | "icon";
+export type Finish = "bronze" | "silver" | "gold" | "totw" | "toty" | "icon" | "founder";
 export type Position = "ST" | "RW" | "CAM" | "CM" | "CDM" | "CB";
 export type Family = "Forward" | "Playmaker" | "Anchor";
 
@@ -64,6 +64,17 @@ export interface Archetype {
   blurb: string;
 }
 
+// A gitfut founder's bespoke card treatment. Declared once (lib/scoring/constants
+// FOUNDERS), resolved inside buildCard, and read by every surface (card art +
+// accent, scout pill, OG accent) so the whole app tints to the right founder.
+export interface FounderMeta {
+  art: string; // root-relative card PNG, e.g. "/cards/founder-red.png"
+  accent: string; // hex; drives the badge, pill, glow and OG accent
+  ink?: string; // optional card text color override (defaults to near-white)
+  label: string; // badge/pill text, e.g. "FOUNDER"
+  tagline: string; // tooltip + flavor, e.g. "Co-founder of gitfut"
+}
+
 export interface Card {
   login: string;
   name: string;
@@ -88,5 +99,8 @@ export interface Card {
   // Both optional so previously serialized cards (localStorage) stay valid.
   topLanguage?: string | null;
   languageLogo?: { name: string; slug: string } | null;
+  // Set only for gitfut founders — their bespoke card art/accent + hint metadata.
+  // Optional so every other card (and previously serialized ones) stay valid.
+  founder?: FounderMeta;
   report: Report;
 }

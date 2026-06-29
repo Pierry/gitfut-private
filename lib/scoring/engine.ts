@@ -1,7 +1,7 @@
 import { countryForLogin } from "../geo";
 import { topLanguageLogo } from "../github/languages";
 import { deriveMetrics, deriveSkillMoves, deriveStyle, deriveWeakFoot, deriveWorkRate } from "./attributes";
-import { FINISH_LABELS, K, STATS, WEIGHTS } from "./constants";
+import { FINISH_LABELS, FOUNDER_OVERALL, FOUNDERS, K, STATS, WEIGHTS } from "./constants";
 import { derivePlaystyles } from "./playstyles";
 import type {
   Archetype,
@@ -164,9 +164,18 @@ export function buildCard(s: Signals): Card {
   const { position, family } = positionFromShape(stats);
   const baseOVR = weightedOVR(stats, family);
   const L = legacyScore(s);
-  const overall = clamp(baseOVR + Math.round(K.legacy.bonusMax * L), 1, 99);
-  const finish = pickFinish(overall, L, s.recent_spike, s.login);
-  const archetype = archetypeFromShape(stats, finish);
+
+  // Founders get a forced overall (>89) and the bespoke "founder" tier. We drive
+  // `finish` directly rather than via pickFinish: any overall >= 90 would
+  // otherwise auto-promote to ICON (and flip club/archetype), hijacking the look.
+  const founder = FOUNDERS[s.login.toLowerCase()];
+  const overall = founder
+    ? FOUNDER_OVERALL[s.login.toLowerCase()]
+    : clamp(baseOVR + Math.round(K.legacy.bonusMax * L), 1, 99);
+  const finish: Finish = founder ? "founder" : pickFinish(overall, L, s.recent_spike, s.login);
+  const archetype = founder
+    ? { name: "Founder", blurb: "co-founder of GitFut — they built the very scout reading this card" }
+    : archetypeFromShape(stats, finish);
   const skill = deriveSkillMoves(s);
   const weak = deriveWeakFoot(stats);
   const work = deriveWorkRate(stats);
@@ -191,6 +200,7 @@ export function buildCard(s: Signals): Card {
     archetypeBlurb: archetype.blurb,
     topLanguage: s.topLanguage ?? null,
     languageLogo,
+    ...(founder ? { founder } : null),
     legacy: { L },
     report: {
       skillMoves: skill.value,

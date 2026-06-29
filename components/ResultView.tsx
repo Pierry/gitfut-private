@@ -9,7 +9,7 @@ import CardImageSync from "./CardImageSync";
 import FlagPicker from "./FlagPicker";
 import Mascot from "./Mascot";
 import { AttributesPanel, MetricsPanel, ReportHeader } from "./ScoutReport";
-import { RESULT_THEME } from "./finishTheme";
+import { resolveResultTheme } from "./finishTheme";
 import { useReveal } from "@/hooks/useReveal";
 import { burstConfetti } from "@/lib/confetti";
 
@@ -37,7 +37,7 @@ const CONFETTI: Record<string, string[]> = {
 
 export default function ResultView({ card, onBack, onCountryChange, shareSig, generateShare }: Props) {
   const captureRef = useRef<HTMLDivElement>(null);
-  const theme = RESULT_THEME[card.finish];
+  const theme = resolveResultTheme(card);
   const phase = useReveal(card.finish);
 
   // BACK when the visitor came from home this tab; otherwise (direct / shared
@@ -54,12 +54,16 @@ export default function ResultView({ card, onBack, onCountryChange, shareSig, ge
     return () => clearTimeout(t);
   }, []);
 
-  // Fire confetti when the rare-tier reveal hits its burst.
+  // Fire confetti when the rare-tier reveal hits its burst. Founders burst in
+  // their own accent (woven with brand green); other tiers use the palette map.
   useEffect(() => {
     if (phase === "burst") {
-      burstConfetti(CONFETTI[card.finish] ?? ["#39d353", "#e9cc74", "#ffffff"]);
+      const palette = card.founder
+        ? [card.founder.accent, "#ffffff", "#39d353"]
+        : (CONFETTI[card.finish] ?? ["#39d353", "#e9cc74", "#ffffff"]);
+      burstConfetti(palette);
     }
-  }, [phase, card.finish]);
+  }, [phase, card.finish, card.founder]);
 
   const ignited = phase === "ignite" || phase === "burst" || phase === "freeze";
 

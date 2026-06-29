@@ -16,7 +16,7 @@ export interface RevealStep {
 
 // Tiers that earn the full spectacle (TOTY + Icon/Legend). TOTW (in-form) also
 // gets a modest burst because it is, by definition, a rare "event" card.
-const BURST_TIERS: ReadonlySet<Finish> = new Set<Finish>(["toty", "icon", "totw"]);
+const BURST_TIERS: ReadonlySet<Finish> = new Set<Finish>(["toty", "icon", "totw", "founder"]);
 
 export function hasBurst(finish: Finish): boolean {
   return BURST_TIERS.has(finish);
