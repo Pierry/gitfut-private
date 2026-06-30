@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import type { Card } from "@/lib/scoring/types";
 import PlayerCard from "./PlayerCard";
+import StoryFrame from "./StoryFrame";
 import CardActions from "./CardActions";
 import CardImageSync from "./CardImageSync";
 import FlagPicker from "./FlagPicker";
@@ -51,6 +52,7 @@ export default function ResultView({
   canonicalCountry = "",
 }: Props) {
   const captureRef = useRef<HTMLDivElement>(null);
+  const storyRef = useRef<HTMLDivElement>(null);
   const theme = resolveResultTheme(card);
   const phase = useReveal(card.finish);
   const [modalOpen, setModalOpen] = useState(false);
@@ -177,7 +179,12 @@ export default function ResultView({
             <FlagPicker value={card.country} onChange={onCountryChange} />
           </div>
           <div style={{ width: CARD_WIDTH }}>
-            <CardActions card={card} targetRef={captureRef} canonicalCountry={canonicalCountry} />
+            <CardActions
+              card={card}
+              targetRef={captureRef}
+              storyRef={storyRef}
+              canonicalCountry={canonicalCountry}
+            />
           </div>
         </div>
 
@@ -196,6 +203,26 @@ export default function ResultView({
       {generateShare && shareSig && (
         <CardImageSync targetRef={captureRef} login={card.login} sig={shareSig} />
       )}
+
+      {/* Off-screen story canvas (1080×1920). Parked in a 0×0 clip holder at the
+          viewport origin — NOT display:none — so its card art/avatar/fonts paint
+          and decode, letting renderCardImage clone + capture it for the Story
+          download/share. Same off-screen technique as lib/capture.ts. */}
+      <div
+        aria-hidden
+        style={{
+          position: "fixed",
+          left: 0,
+          top: 0,
+          width: 0,
+          height: 0,
+          overflow: "hidden",
+          zIndex: -1,
+          pointerEvents: "none",
+        }}
+      >
+        <StoryFrame ref={storyRef} card={card} />
+      </div>
     </main>
 
     {modalOpen && <HowItWorksModal onClose={() => setModalOpen(false)} />}

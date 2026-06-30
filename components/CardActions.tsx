@@ -2,13 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toBlob, toPng } from "html-to-image";
-import { Check, Copy, Download, Link2, Share2 } from "lucide-react";
+import { Check, Copy, Download, ImageDown, Link2, Share2 } from "lucide-react";
 import type { Card } from "@/lib/scoring/types";
 import { cardUrl, intentUrl, nativeSharePayload } from "@/lib/share";
 import { renderCardImage } from "@/lib/capture";
 import { resolveResultTheme } from "./finishTheme";
 
+// The on-page card is small, so it captures at 3× to hit print resolution. The
+// story frame is already rendered at its native 1080×1920, so 1× is exact —
+// upscaling it would just bloat the file for no added detail.
 const RENDER_OPTS = { pixelRatio: 3, cacheBust: true } as const;
+const STORY_RENDER_OPTS = { pixelRatio: 1, cacheBust: true } as const;
 
 function XLogo({ size = 16 }: { size?: number }) {
   return (
@@ -99,10 +103,13 @@ const brandHover = (brand: string) => ({
 export default function CardActions({
   card,
   targetRef,
+  storyRef,
   canonicalCountry = "",
 }: {
   card: Card;
   targetRef: React.RefObject<HTMLDivElement | null>;
+  /** Off-screen 1080×1920 story canvas, captured for the Instagram-Story export. */
+  storyRef?: React.RefObject<HTMLDivElement | null>;
   /** GitHub-derived flag; the share link only carries ?country= when overridden. */
   canonicalCountry?: string;
 }) {
@@ -174,6 +181,65 @@ export default function CardActions({
     } catch (e) {
       if (e instanceof Error && e.name === "AbortError") return; // user dismissed
       window.open(intentUrl("x", shareCard), "_blank", "noopener,noreferrer");
+    }
+  };
+
+  // Instagram-Story export (1080×1920). On mobile, prefer the native share sheet
+  // with the image attached — that's the one-tap route into IG Stories. On
+  // desktop (no file share), fall back to downloading the PNG to upload manually.
+  const shareStory = async () => {
+    const node = storyRef?.current;
+    if (!node || busy) return;
+    setBusy("story");
+    setError(null);
+    try {
+      const blob = await renderCardImage(node, async (n) => {
+        const b = await toBlob(n, STORY_RENDER_OPTS);
+        if (!b) throw new Error("render returned no image");
+        return b;
+      });
+      const file = new File([blob], `${card.login}-gitfut-story.png`, { type: "image/png" });
+
+      // On mobile, the share sheet is the one-tap route into IG Stories. On
+      // desktop, navigator.share with a file is often advertised (canShare=true)
+      // but no-ops or is dismissed — so it must NEVER be the only outcome.
+      // Only mobile (coarse pointer) attempts share; everyone else downloads,
+      // and a dismissed/failed share also falls back to download.
+      const isMobile =
+        typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
+      let shared = false;
+      if (
+        isMobile &&
+        typeof navigator.canShare === "function" &&
+        navigator.canShare({ files: [file] })
+      ) {
+        try {
+          await navigator.share({ ...nativeSharePayload(shareCard), files: [file] });
+          shared = true;
+        } catch (e) {
+          if (e instanceof Error && e.name === "AbortError") {
+            shared = true; // user saw the sheet and chose to dismiss — don't also download
+          }
+          // any other failure: fall through to download
+        }
+      }
+
+      if (!shared) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.download = file.name;
+        a.href = url;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      setDone("story");
+      setTimeout(() => setDone((d) => (d === "story" ? null : d)), 1500);
+    } catch (e) {
+      console.error("[gitfut] story export failed:", e);
+      setError(`Story failed: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setBusy(null);
     }
   };
 
@@ -315,6 +381,29 @@ export default function CardActions({
           </div>
         );
       })()}
+
+      {/* Instagram-Story export — a 1080×1920 vertical image, the format Stories
+          want. One button: shares-with-file on mobile (one tap into IG), or
+          downloads the PNG on desktop. */}
+      {storyRef && (
+        <button
+          type="button"
+          onClick={shareStory}
+          disabled={busy === "story"}
+          title="Download a 1080×1920 image sized for Instagram Stories"
+          aria-label="Download a story-format image for Instagram Stories"
+          className="group inline-flex w-full items-center justify-center gap-[8px] rounded-xl border border-line bg-white/[0.03] py-[12px] text-[12.5px] font-semibold text-ink-soft transition-all duration-200 ease-out hover:-translate-y-[1px] hover:border-[#e1306c]/55 hover:bg-[#e1306c]/[0.1] hover:text-white hover:shadow-[0_8px_22px_-10px_rgba(225,48,108,.8)] active:translate-y-0 active:scale-[.98] disabled:opacity-60"
+        >
+          {busy === "story" ? (
+            <span className="h-[14px] w-[14px] animate-spin rounded-full border-[1.5px] border-white/25 border-t-white/80" />
+          ) : done === "story" ? (
+            <Check size={15} className="text-brand" />
+          ) : (
+            <ImageDown size={15} className="transition-colors group-hover:text-[#ff5a8a]" />
+          )}
+          {busy === "story" ? "Rendering…" : done === "story" ? "Done" : "Story format"}
+        </button>
+      )}
 
       {error && <p className="text-center text-[12px] leading-snug text-[#ff9d96]">{error}</p>}
     </div>
