@@ -13,28 +13,19 @@ import type { Card } from "@/lib/scoring/types";
 // cache so the home flow sees the same choice within the TTL.
 export default function ScoutRoute({
   card: initial,
-  shareSig,
-  generateShare,
   stars,
   canonicalCountry,
 }: {
   card: Card;
-  shareSig?: string;
-  generateShare?: boolean;
   stars: number | null;
   canonicalCountry: string;
 }) {
   const router = useRouter();
   const [card, setCard] = useState(initial);
-  // Once the visitor manually picks a flag, cancel any pending share-image
-  // capture: the Blob must only ever hold the canonical (GitHub-derived) card,
-  // never this personal override.
-  const [overridden, setOverridden] = useState(false);
 
   const onCountryChange = (code: string) => {
     const next = { ...card, country: code };
     setCard(next);
-    setOverridden(true);
     writeCardCache(next);
     const url = new URL(window.location.href);
     if (code) url.searchParams.set("country", code);
@@ -48,8 +39,6 @@ export default function ScoutRoute({
       card={card}
       onBack={() => router.push("/")}
       onCountryChange={onCountryChange}
-      shareSig={shareSig}
-      generateShare={generateShare && !overridden}
       stars={stars}
       canonicalCountry={canonicalCountry}
     />

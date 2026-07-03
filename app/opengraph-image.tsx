@@ -1,4 +1,6 @@
 import { ImageResponse } from "next/og";
+import { SAMPLE_CARDS } from "@/lib/github/samples";
+import { loadCardAssets, cardTree } from "@/lib/og/renderCard";
 
 // Branded preview for the home page / bare gitfut.com links. Next wires this as
 // the default og:image + twitter:image automatically (metadataBase is absolute).
@@ -7,7 +9,14 @@ export const alt = "GitFut — your GitHub, rated out of 99";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export default function Image() {
+// A real card (Linus Torvalds, a baked sample) as the hero instead of a
+// placeholder chip — same renderer as /<user>.png and the unfurls.
+const CARD_W = 316; // -> ~480 tall, fits the 630 frame with margin
+
+export default async function Image() {
+  const card = SAMPLE_CARDS.find((c) => c.login === "torvalds") ?? SAMPLE_CARDS[0];
+  const assets = await loadCardAssets(card, CARD_W);
+
   return new ImageResponse(
     (
       <div
@@ -19,7 +28,7 @@ export default function Image() {
           backgroundImage:
             "radial-gradient(900px 520px at 22% -12%, rgba(57,211,83,0.20), transparent 60%), radial-gradient(720px 520px at 105% 120%, rgba(212,175,55,0.14), transparent 60%)",
           color: "#e6edf3",
-          fontFamily: "sans-serif",
+          fontFamily: "DINPro",
           padding: 72,
           alignItems: "center",
           justifyContent: "space-between",
@@ -41,26 +50,11 @@ export default function Image() {
           </div>
           <div style={{ display: "flex", fontSize: 28, color: "#6e7681" }}>gitfut.com</div>
         </div>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 330,
-            height: 472,
-            borderRadius: 28,
-            background: "#161b22",
-            border: "2px solid #e9cc74",
-            boxShadow: "0 0 90px rgba(233,204,116,0.30)",
-          }}
-        >
-          <div style={{ display: "flex", fontSize: 232, fontWeight: 900, color: "#e9cc74", lineHeight: 1 }}>99</div>
-          <div style={{ display: "flex", fontSize: 46, fontWeight: 800, letterSpacing: 6, color: "#e6edf3" }}>ST</div>
-          <div style={{ display: "flex", fontSize: 28, letterSpacing: 5, color: "#8b949e", marginTop: 10 }}>ICON</div>
-        </div>
+
+        {/* the real card as the hero (Torvalds sample), same renderer as the embeds */}
+        <div style={{ display: "flex" }}>{cardTree(card, assets, CARD_W)}</div>
       </div>
     ),
-    size,
+    { ...size, fonts: assets.fonts },
   );
 }

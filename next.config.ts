@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // sharp (a native binary) feathers the embed-card avatar in app/api/card-image.
+  // Marking it external loads it from node_modules at runtime instead of bundling
+  // it, so the correct platform binary is used on Vercel.
+  serverExternalPackages: ["sharp"],
+
   async rewrites() {
     // Pretty embed URL: gitfut.com/<username>.png -> the card image route. The
     // username charset matches GitHub's (alphanumerics + hyphens), and it only

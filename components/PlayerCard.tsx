@@ -287,9 +287,9 @@ function PlayerCard({ card }: { card: Card }) {
 
       {/* signature — maker's mark (bottom-left) + handle (bottom-right) on the
           lower shield. Hidden on the live card; revealed only on the export
-          clone (CardActions / CardImageSync tag it `.gitfut-capturing`), so it
-          lands in every download / copy / share / Blob image but never on
-          screen. See lib/capture.ts + the `.gitfut-signature` rule in globals. */}
+          clone (CardActions tags it `.gitfut-capturing`), so it lands in every
+          download / copy / share image but never on screen. See lib/capture.ts
+          + the `.gitfut-signature` rule in globals. */}
       <div className="gitfut-signature">
         <div
           style={{

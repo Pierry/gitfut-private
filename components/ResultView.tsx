@@ -6,11 +6,11 @@ import type { Card } from "@/lib/scoring/types";
 import PlayerCard from "./PlayerCard";
 import StoryFrame from "./StoryFrame";
 import CardActions from "./CardActions";
-import CardImageSync from "./CardImageSync";
 import FlagPicker from "./FlagPicker";
 import Mascot from "./Mascot";
 import FooterCredit from "./FooterCredit";
 import BuyMeACoffee from "./BuyMeACoffee";
+import GithubStar from "./GithubStar";
 import HowItWorksModal from "./HowItWorksModal";
 import { AttributesPanel, MetricsPanel, ReportHeader } from "./ScoutReport";
 import { resolveResultTheme } from "./finishTheme";
@@ -22,10 +22,6 @@ interface Props {
   onBack: () => void;
   /** Edit the card's flag from the report (click-the-flag picker). */
   onCountryChange: (code: string) => void;
-  /** HMAC that authorises this browser to upload the card's share image. */
-  shareSig?: string;
-  /** When true (image missing/stale), render + upload the share image to Blob. */
-  generateShare?: boolean;
   /** Repo stars for the footer credit's star/repo link (null = no count shown). */
   stars?: number | null;
   /** GitHub-derived flag; share links only carry ?country= when it's overridden. */
@@ -47,8 +43,6 @@ export default function ResultView({
   card,
   onBack,
   onCountryChange,
-  shareSig,
-  generateShare,
   stars,
   canonicalCountry = "",
 }: Props) {
@@ -126,13 +120,16 @@ export default function ResultView({
           </button>
           <Mascot size={40} kick={false} ball={false} animate={false} />
         </div>
-        <button
-          type="button"
-          onClick={() => setModalOpen(true)}
-          className="cursor-pointer text-[12.5px] font-semibold text-ink-soft underline-offset-2 transition hover:text-brand hover:underline"
-        >
-          how it works ↗
-        </button>
+        <div className="flex items-center gap-[clamp(10px,2vw,16px)] justify-end">
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="cursor-pointer text-[12.5px] font-semibold text-ink-soft underline-offset-2 transition hover:text-brand hover:underline max-[420px]:hidden"
+          >
+            how it works ↗
+          </button>
+          <GithubStar stars={stars ?? null} />
+        </div>
       </div>
 
       <div className="shrink-0">
@@ -198,12 +195,8 @@ export default function ResultView({
       </div>
 
       <footer className="relative z-[2] mt-auto flex flex-none items-center justify-center p-[clamp(12px,2.6vh,24px)]">
-        <FooterCredit stars={stars ?? null} />
+        <FooterCredit />
       </footer>
-
-      {generateShare && shareSig && (
-        <CardImageSync targetRef={captureRef} login={card.login} sig={shareSig} />
-      )}
 
       {/* Off-screen story canvas (1080×1920). Parked in a 0×0 clip holder at the
           viewport origin — NOT display:none — so its card art/avatar/fonts paint

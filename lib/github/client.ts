@@ -133,7 +133,10 @@ async function gql<T>(query: string, login: string, token: string, retries = 1):
       return fail("network", "GitHub returned a malformed response.");
     }
 
-    if (body.errors?.some((e) => e.type === "RATE_LIMITED")) {
+    // GitHub sends the type as "RATE_LIMITED" (secondary) or "RATE_LIMIT" (primary,
+    // with code "graphql_rate_limit"). Match all so an exhausted quota reports as a
+    // rate limit rather than falling through to a misleading "no user found".
+    if (body.errors?.some((e) => e.type === "RATE_LIMITED" || e.type === "RATE_LIMIT")) {
       return fail("ratelimit", "GitHub rate limit hit. Try again shortly.");
     }
     return { user: body.data?.user ?? null };

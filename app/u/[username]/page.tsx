@@ -10,7 +10,6 @@ import { pickFlag } from "@/lib/flagPriority";
 import { recordScout } from "@/lib/analytics";
 import type { Card } from "@/lib/scoring/types";
 import ScoutRoute from "./ScoutRoute";
-import { getCardImage, signLogin } from "@/lib/cardImage";
 
 export const dynamic = "force-dynamic"; // per-user, token-gated, always fresh
 
@@ -30,15 +29,13 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
   const { username } = await params;
   const res = await loadCard(username);
   if ("card" in res) {
-    const img = await getCardImage(res.card.login);
     return {
       title: `${res.card.name} — ${res.card.overall} ${res.card.finishLabel} · GitFut`,
       description: `${res.card.name} scouted on GitFut: ${res.card.overall} OVR ${res.card.position}, ${res.card.archetype}.`,
       alternates: { canonical: `/${res.card.login}` },
       twitter: { card: "summary_large_image" },
-      // Exact card (rendered client-side, stored in Blob) once it exists; until
-      // then the file-convention opengraph-image.tsx provides the fallback.
-      openGraph: img ? { images: [img.url] } : undefined,
+      // og:image comes from the file-convention opengraph-image.tsx (the landscape
+      // unfurl card). The portrait FUT card lives at /<login>.png for README embeds.
     };
   }
   // Not a real profile — keep these soft-404s out of the index.
@@ -46,8 +43,11 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
 }
 
 function NotScouted({ username, error }: { username: string; error: GithubError }) {
-  const message =
-    error.type === "notfound"
+  const rateLimited = error.type === "ratelimit";
+  const heading = rateLimited ? "The scouts are gassed" : "No file found";
+  const message = rateLimited
+    ? `You lot went viral and stormed the training ground all at once — GitHub just showed us a yellow card for time-wasting. Give the scouts a couple minutes to catch their breath, then send @${username} back on.`
+    : error.type === "notfound"
       ? `There's no GitHub user named @${username}.`
       : error.type === "invalid"
         ? `“${username}” isn't a valid GitHub username.`
@@ -55,13 +55,13 @@ function NotScouted({ username, error }: { username: string; error: GithubError 
   return (
     <main className="relative z-[2] mx-auto flex min-h-screen max-w-[560px] flex-col items-center justify-center px-6 text-center">
       <div className="font-display text-[12px] font-bold tracking-[.3em] text-brand">SCOUT REPORT</div>
-      <h1 className="font-display mt-3 text-[clamp(30px,6vw,48px)] font-black leading-[.95]">No file found</h1>
+      <h1 className="font-display mt-3 text-[clamp(30px,6vw,48px)] font-black leading-[.95]">{heading}</h1>
       <p className="mt-3 text-[15.5px] leading-[1.5] text-ink-soft">{message}</p>
       <Link
         href="/"
         className="font-display mt-7 inline-flex h-[46px] items-center rounded-xl bg-brand px-6 text-[16px] tracking-[.06em] text-[#04130a] transition hover:bg-brand-hi"
       >
-        SCOUT SOMEONE ELSE
+        {rateLimited ? "BACK TO THE BENCH" : "SCOUT SOMEONE ELSE"}
       </Link>
     </main>
   );
@@ -83,33 +83,18 @@ export default async function Page({
   // country. No IP/geo fallback — we never put the *viewer's* country on someone
   // else's card.
   let card: Card | null = "card" in res ? res.card : null;
-  let generateShare = false;
-  let shareSig = "";
   let canonicalCountry = ""; // GitHub-derived flag; share links omit ?country= unless overridden
   if (card) {
     after(() => recordScout()); // analytics, flushed after the response (serverless-safe)
     canonicalCountry = pickFlag(null, card.country) ?? ""; // GitHub-derived only
     const displayCountry = pickFlag(override, card.country) ?? "";
     card = { ...card, country: displayCountry };
-    const img = await getCardImage(card.login);
-    // Only ever cache the canonical card in Blob — never a per-visitor flag
-    // override — so the shared/embedded image is identical for everyone. The
-    // override stays a live, personal tweak; picker-time overrides are cancelled
-    // client-side in ScoutRoute so they can't taint the capture either.
-    generateShare = (!img || img.stale) && displayCountry === canonicalCountry;
-    shareSig = signLogin(card.login);
   }
   return (
     <div className="relative min-h-screen overflow-x-hidden text-ink">
       <Background />
       {card ? (
-        <ScoutRoute
-          card={card}
-          shareSig={shareSig}
-          generateShare={generateShare}
-          stars={stars}
-          canonicalCountry={canonicalCountry}
-        />
+        <ScoutRoute card={card} stars={stars} canonicalCountry={canonicalCountry} />
       ) : (
         <NotScouted username={username} error={(res as { error: GithubError }).error} />
       )}
