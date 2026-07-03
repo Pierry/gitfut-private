@@ -7,6 +7,7 @@ import CardFan from "@/components/CardFan";
 import LoadingScreen from "@/components/LoadingScreen";
 import HowItWorksModal from "@/components/HowItWorksModal";
 import FooterCredit from "@/components/FooterCredit";
+import BuyMeACoffee from "@/components/BuyMeACoffee";
 import GithubStar from "@/components/GithubStar";
 import { SAMPLE_CARDS } from "@/lib/github/samples";
 
@@ -59,6 +60,8 @@ export default function AppShell({ stars, scoutCount }: { stars: number | null; 
           <FooterCredit />
         </footer>
       </main>
+
+      <BuyMeACoffee />
 
       {modalOpen && <HowItWorksModal onClose={() => setModalOpen(false)} />}
     </>
