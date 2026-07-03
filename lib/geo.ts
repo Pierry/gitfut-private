@@ -1,5 +1,8 @@
-// Best-effort country from a freeform GitHub `location` string → ISO 3166-1
-// alpha-2 code (lowercase, matching public/badges/flags/<code>.png), or null.
+// Best-effort country from a freeform GitHub `location` string → a flag code
+// (lowercase, matching public/badges/flags/<code>.png), or null. Usually an ISO
+// 3166-1 alpha-2 code; the UK home nations resolve to their OWN flag rather than
+// the Union Flag (scotland → sct, wales → wls, england → eng, NI →
+// nir), since they're separate football sides (see lib/countries UK_NATIONS).
 // GitHub has no structured country, so this matches country names/aliases, full
 // US state names, and major cities. Unknowns return null (no flag) rather than
 // a wrong guess — 2-letter abbreviations are skipped on purpose (DE = Germany
@@ -7,7 +10,8 @@
 
 const COUNTRY: Record<string, string> = {
   "united states": "us", "united states of america": "us", usa: "us", america: "us",
-  "united kingdom": "gb", uk: "gb", britain: "gb", "great britain": "gb", england: "gb", scotland: "gb", wales: "gb",
+  "united kingdom": "gb", uk: "gb", britain: "gb", "great britain": "gb",
+  england: "eng", scotland: "sct", wales: "wls", "northern ireland": "nir",
   canada: "ca", germany: "de", deutschland: "de", france: "fr", india: "in", bharat: "in",
   china: "cn", japan: "jp", nippon: "jp", brazil: "br", brasil: "br", russia: "ru", "russian federation": "ru",
   netherlands: "nl", holland: "nl", "the netherlands": "nl", spain: "es", españa: "es", espana: "es",
@@ -35,7 +39,8 @@ const CITY: Record<string, string> = {
   "palo alto": "us", "mountain view": "us", "silicon valley": "us", "bay area": "us", atlanta: "us", miami: "us",
   dallas: "us", houston: "us", washington: "us", "washington dc": "us", philadelphia: "us", pittsburgh: "us",
   phoenix: "us", "salt lake city": "us", nashville: "us", brooklyn: "us",
-  london: "gb", manchester: "gb", cambridge: "gb", oxford: "gb", edinburgh: "gb", bristol: "gb",
+  london: "eng", manchester: "eng", cambridge: "eng", oxford: "eng", bristol: "eng",
+  edinburgh: "sct", glasgow: "sct", cardiff: "wls", belfast: "nir",
   paris: "fr", lyon: "fr", berlin: "de", munich: "de", münchen: "de", muenchen: "de", hamburg: "de", frankfurt: "de",
   amsterdam: "nl", rotterdam: "nl", madrid: "es", barcelona: "es", rome: "it", milan: "it", milano: "it",
   toronto: "ca", vancouver: "ca", montreal: "ca", ottawa: "ca", waterloo: "ca",

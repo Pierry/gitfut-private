@@ -18,9 +18,9 @@ describe("country data", () => {
     expect([...names].sort((a, b) => a.localeCompare(b, "en"))).toEqual(names);
   });
 
-  it("uses lowercase alpha-2 codes with no duplicates", () => {
+  it("uses lowercase 2–3 letter codes with no duplicates", () => {
     const codes = COUNTRIES.map((c) => c.code);
-    for (const code of codes) expect(code).toMatch(/^[a-z]{2}$/);
+    for (const code of codes) expect(code).toMatch(/^[a-z]{2,3}$/); // 3-letter = UK home nations
     expect(new Set(codes).size).toBe(codes.length);
   });
 
@@ -53,6 +53,28 @@ describe("countryName", () => {
     expect(countryName("DE")).toBe("Germany");
     expect(countryName("zz")).toBeNull();
     expect(countryName(null)).toBeNull();
+  });
+});
+
+describe("UK home nations", () => {
+  it("are valid, named flag codes (so a derived flag survives normalization)", () => {
+    for (const [code, name] of [
+      ["sct", "Scotland"],
+      ["wls", "Wales"],
+      ["eng", "England"],
+      ["nir", "Northern Ireland"],
+    ] as const) {
+      expect(isValidCountry(code)).toBe(true);
+      expect(normalizeCountry(code.toUpperCase())).toBe(code);
+      expect(countryName(code)).toBe(name);
+    }
+  });
+
+  it("are pickable and searchable like any country", () => {
+    const codes = new Set(searchCountries("").map((c) => c.code));
+    for (const code of ["sct", "wls", "eng", "nir"]) expect(codes.has(code)).toBe(true);
+    expect(codes.has("gb")).toBe(true); // sovereign UK is still there too
+    expect(searchCountries("scot")[0]?.code).toBe("sct"); // found by name
   });
 });
 
