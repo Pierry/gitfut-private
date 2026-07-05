@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { toBlob, toPng } from "html-to-image";
 import { Check, Copy, Download, ImageDown, Link2, Share2 } from "lucide-react";
 import type { Card } from "@/lib/scoring/types";
 import { cardUrl, intentUrl, nativeSharePayload } from "@/lib/share";
 import { renderCardImage } from "@/lib/capture";
+import { useShareActions } from "@/hooks/useShareActions";
+import { XLogo, LinkedInLogo } from "./BrandIcons";
 import { resolveResultTheme } from "./finishTheme";
 
 // The on-page card is small, so it captures at 3× to hit print resolution. The
@@ -13,22 +15,6 @@ import { resolveResultTheme } from "./finishTheme";
 // upscaling it would just bloat the file for no added detail.
 const RENDER_OPTS = { pixelRatio: 3, cacheBust: true } as const;
 const STORY_RENDER_OPTS = { pixelRatio: 1, cacheBust: true } as const;
-
-function XLogo({ size = 16 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-    </svg>
-  );
-}
-
-function LinkedInLogo({ size = 16 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.22.79 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z" />
-    </svg>
-  );
-}
 
 interface ExportAction {
   id: string;
@@ -116,21 +102,6 @@ export default function CardActions({
   const [done, setDone] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [linkCopied, setLinkCopied] = useState(false);
-  // Default true so supported browsers (mobile + modern desktop) render the CTA
-  // with no layout shift; the effect hides it where Web Share is unavailable
-  // (e.g. desktop Firefox) so it never falls back to a redundant X-share.
-  const [canNativeShare, setCanNativeShare] = useState(true);
-  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    // Default is "shown"; only hide where Web Share is missing. The set is
-    // deferred (not synchronous in the effect) so it can't cascade renders.
-    const supported = typeof navigator !== "undefined" && typeof navigator.share === "function";
-    if (supported) return;
-    const t = setTimeout(() => setCanNativeShare(false), 0);
-    return () => clearTimeout(t);
-  }, []);
 
   // Download CTA picks up the card's own tier color so the action matches the
   // card the user is saving (bronze → bronze, silver → silver, TOTY → blue,
@@ -142,6 +113,29 @@ export default function CardActions({
   // stays clean — the recipient still resolves to the same canonical flag.
   const shareCard =
     card.country && card.country !== canonicalCountry ? card : { ...card, country: "" };
+
+  // Share-row gestures (native sheet + copy link) — shared with DuelView. The
+  // native payload attaches the freshly rendered card image when the platform
+  // can share files; otherwise it falls back to the text+url payload, and a
+  // failed/unsupported share opens the X intent.
+  const { canNativeShare, nativeShare, copyLink, linkCopied } = useShareActions({
+    getSharePayload: async () => {
+      const node = targetRef.current;
+      const payload = nativeSharePayload(shareCard);
+      if (node && "canShare" in navigator) {
+        const blob = await renderCardImage(node, (n) => toBlob(n, RENDER_OPTS));
+        if (blob) {
+          const file = new File([blob], `${card.login}-gitfut.png`, { type: "image/png" });
+          if (navigator.canShare?.({ files: [file] })) {
+            return { ...payload, files: [file] };
+          }
+        }
+      }
+      return payload;
+    },
+    getIntentUrl: () => intentUrl("x", shareCard),
+    getCopyUrl: () => cardUrl(shareCard),
+  });
 
   const runExport = async (a: ExportAction) => {
     const node = targetRef.current;
@@ -158,29 +152,6 @@ export default function CardActions({
       setError(`${a.label} failed: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setBusy(null);
-    }
-  };
-
-  // Native share sheet — the best one-tap path on mobile (and the only route to
-  // Instagram Stories). Tries to attach the card image; falls back to text+url.
-  const nativeShare = async () => {
-    const node = targetRef.current;
-    const payload = nativeSharePayload(shareCard);
-    try {
-      if (node && "canShare" in navigator) {
-        const blob = await renderCardImage(node, (n) => toBlob(n, RENDER_OPTS));
-        if (blob) {
-          const file = new File([blob], `${card.login}-gitfut.png`, { type: "image/png" });
-          if (navigator.canShare?.({ files: [file] })) {
-            await navigator.share({ ...payload, files: [file] });
-            return;
-          }
-        }
-      }
-      await navigator.share(payload);
-    } catch (e) {
-      if (e instanceof Error && e.name === "AbortError") return; // user dismissed
-      window.open(intentUrl("x", shareCard), "_blank", "noopener,noreferrer");
     }
   };
 
@@ -240,17 +211,6 @@ export default function CardActions({
       setError(`Story failed: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setBusy(null);
-    }
-  };
-
-  const copyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(cardUrl(shareCard));
-      setLinkCopied(true);
-      if (copiedTimer.current) clearTimeout(copiedTimer.current);
-      copiedTimer.current = setTimeout(() => setLinkCopied(false), 1600);
-    } catch {
-      /* clipboard unavailable — silent */
     }
   };
 
