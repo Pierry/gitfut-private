@@ -9,11 +9,17 @@ import { resolveResultTheme } from "@/components/finishTheme";
 import VsBurst from "@/components/VsBurst";
 import type { Card } from "@/lib/scoring/types";
 
+// The Fixture poster, served as an explicit image route (/<a>/vs/<b>/poster.png)
+// and wired into the duel page's metadata by generateMetadata. It is NOT a
+// file-convention opengraph-image on purpose: Turbopack dev doesn't register
+// metadata-image conventions under two dynamic segments (the single-segment
+// card OGs register fine), so the poster 404'd in dev. An explicit route +
+// explicit openGraph.images works identically everywhere — same pattern as
+// /api/card-image.
+
 export const runtime = "nodejs";
-export const alt =
-  "GitFut Scout Duel fixture poster — two player cards facing off";
-export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
+
+const POSTER_SIZE = { width: 1200, height: 630 };
 
 const CARD_W = 300;
 const TILT = 7; // degrees each card leans toward the centre line
@@ -32,11 +38,10 @@ async function tryCard(username: string): Promise<Card | null> {
   }
 }
 
-export default async function Image({
-  params,
-}: {
-  params: Promise<{ username: string; opponent: string }>;
-}) {
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ username: string; opponent: string }> },
+) {
   const { username, opponent } = await params;
   const [a, b] = await Promise.all([tryCard(username), tryCard(opponent)]);
 
@@ -104,7 +109,7 @@ export default async function Image({
           gitfut.com
         </div>
       </div>,
-      { ...size, fonts, headers: CACHE },
+      { ...POSTER_SIZE, fonts, headers: CACHE },
     );
   }
 
@@ -228,6 +233,6 @@ export default async function Image({
         </div>
       </div>
     </div>,
-    { ...size, fonts: aAssets.fonts, headers: CACHE },
+    { ...POSTER_SIZE, fonts: aAssets.fonts, headers: CACHE },
   );
 }

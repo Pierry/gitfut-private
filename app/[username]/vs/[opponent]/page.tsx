@@ -27,13 +27,23 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { username, opponent } = await params;
   const [a, b] = await Promise.all([loadCard(username), loadCard(opponent)]);
   if ("card" in a && "card" in b) {
+    // The fixture poster is an explicit image route (poster.png/route.tsx), NOT
+    // a file-convention opengraph-image: Turbopack dev doesn't register that
+    // convention under two dynamic segments, so it must be wired here.
+    const poster = {
+      url: `/${a.card.login}/vs/${b.card.login}/poster.png`,
+      width: 1200,
+      height: 630,
+      alt: "GitFut Scout Duel fixture poster — two player cards facing off",
+    };
     return {
       title: `${a.card.name} vs ${b.card.name} · GitFut Duel`,
       // Score-free on purpose: the fixture poster and this line sell the click,
       // the page plays the match.
       description: `Six stats, one result: @${a.card.login} vs @${b.card.login}, settled on real GitHub numbers.`,
       alternates: { canonical: `/${a.card.login}/vs/${b.card.login}` },
-      twitter: { card: "summary_large_image" },
+      openGraph: { images: [poster] },
+      twitter: { card: "summary_large_image", images: [poster] },
     };
   }
   return {
