@@ -19,7 +19,7 @@ export const VS_PALETTE = {
 } as const;
 const { fill: FILL, rim: RIM, glow: GLOW, core: CORE } = VS_PALETTE;
 
-export default function VsBurst({ size }: { size: number }) {
+export default function VsBurst({ size = 10 }: { size: number }) {
   const { w, h } = vsBurstBox(size);
   return (
     <span
