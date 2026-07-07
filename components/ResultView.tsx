@@ -11,11 +11,13 @@ import Mascot from "./Mascot";
 import FooterCredit from "./FooterCredit";
 import BuyMeACoffee from "./BuyMeACoffee";
 import GithubStar from "./GithubStar";
-import HowItWorksModal from "./HowItWorksModal";
+import dynamic from "next/dynamic";
 import { AttributesPanel, MetricsPanel, ReportHeader } from "./ScoutReport";
 import { resolveResultTheme } from "./finishTheme";
 import { useReveal } from "@/hooks/useReveal";
 import { burstConfetti } from "@/lib/confetti";
+
+const HowItWorksModal = dynamic(() => import("./HowItWorksModal"), { ssr: false });
 
 interface Props {
   card: Card;

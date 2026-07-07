@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import ScoutForm from "@/components/ScoutForm";
 import CardFan from "@/components/CardFan";
 import LoadingScreen from "@/components/LoadingScreen";
-import HowItWorksModal from "@/components/HowItWorksModal";
+import dynamic from "next/dynamic";
 import FooterCredit from "@/components/FooterCredit";
 import BuyMeACoffee from "@/components/BuyMeACoffee";
 import GithubStar from "@/components/GithubStar";
 import { SAMPLE_CARDS } from "@/lib/github/samples";
+
+const HowItWorksModal = dynamic(() => import("@/components/HowItWorksModal"), { ssr: false });
 
 export default function AppShell({ stars, scoutCount }: { stars: number | null; scoutCount: number | null }) {
   const router = useRouter();
