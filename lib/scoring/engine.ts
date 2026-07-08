@@ -1,7 +1,7 @@
 import { countryForLogin } from "../geo";
 import { topLanguageLogo } from "../github/languages";
 import { deriveMetrics, deriveSkillMoves, deriveStyle, deriveWeakFoot, deriveWorkRate } from "./attributes";
-import { ATTACK_STATS, FINISH_LABELS, FOUNDER_OVERALL, FOUNDERS, K, STATS, WEIGHTS } from "./constants";
+import { FINISH_LABELS, FOUNDER_OVERALL, FOUNDERS, K, STATS, WEIGHTS } from "./constants";
 import { derivePlaystyles } from "./playstyles";
 import type {
   Archetype,
@@ -9,93 +9,32 @@ import type {
   Family,
   Finish,
   Position,
-  Profile,
   Signals,
   StatKey,
   Stats,
 } from "./types";
 
 const Lg = (x: number) => Math.log10(Math.max(0, x) + 1);
-const sigmoid = (z: number) => 1 / (1 + Math.exp(-z));
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
-const mean = (a: number[]) => a.reduce((s, x) => s + x, 0) / a.length;
-const vals = (s: Profile) => STATS.map((k) => s[k]);
 
-// §2 — raw estimates from company-internal signals (no stars/followers/issues).
+// A signal mapped 0–99 against a company-scale reference — IDENTICAL to the
+// scouting-metric bars (lib/scoring/attributes). So the card's six stats ARE
+// those metrics: the card face and the receipts always tell the same story.
+const score = (value: number, ref: number): number =>
+  value <= 0 ? 0 : clamp(Math.round((99 * Lg(value)) / Lg(ref)), 1, 99);
+
+// §2 — the six stats, each a valued company-internal signal on its own bar.
+// Directly, with no z-score/spike transform, so a dev who's elite on the metrics
+// is elite on the card. References match the metric bars exactly.
 function rawStats(s: Signals): Stats {
-  const o: Stats = {
-    // PACE — tempo: this year's contributions + how many days they showed up.
-    pac: 30 + 11 * Lg(s.recent_contributions) + 0.04 * s.active_days_recent,
-    // SHOOTING — output: commits shipped.
-    sho: 34 + 14 * Lg(s.recent_commits),
-    // PASSING — collaboration: pull requests into others' code. The top signal.
-    pas: 34 + 15 * Lg(s.prs_to_others),
-    // DRIBBLING — range: languages, square-root scaled (diminishing returns).
-    dri: 54 + 8 * Math.sqrt(s.languages),
-    // DEFENDING — stewardship: code reviews (issues dropped, barely used internally).
-    def: 36 + 14 * Lg(s.reviews),
-    // PHYSICAL — durability: a lifetime of contributions over the years on the clock.
-    phy: 30 + 10 * Lg(s.total_contributions_lifetime) + 3 * Math.min(s.active_years, 12),
+  return {
+    pac: score(s.active_days_recent, 260), // PACE — days a year they ship
+    sho: score(s.recent_commits, 1_500), // SHOOTING — commits (output)
+    pas: score(s.prs_to_others, 600), // PASSING — pull requests (collaboration)
+    dri: score(Math.min(s.account_age_years, K.ageCap), K.ageCap), // DRIBBLING — seasoning
+    def: score(s.reviews, 400), // DEFENDING — code reviews (stewardship)
+    phy: score(s.total_contributions_lifetime, 8_000), // PHYSICAL — contributions (volume)
   };
-  for (const k of STATS) o[k] = clamp(Math.round(o[k]), 1, 99);
-  return o;
-}
-
-// §3.1 — magnitude → gravity-well center the stats sit around. Internal signals:
-// contributions, PRs, reviews, commits, tenure and active days (no stars/followers).
-function center(s: Signals): number {
-  const { contrib, pr, review, commit, age, activeDays, b, lo, hi } = K.magnitude;
-  const M = sigmoid(
-    contrib * Lg(s.total_contributions_lifetime) +
-      pr * Lg(s.prs_to_others) +
-      review * Lg(s.reviews) +
-      commit * Lg(s.recent_commits) +
-      age * Math.min(s.account_age_years, K.ageCap) +
-      activeDays * s.active_days_recent +
-      b,
-  );
-  return lerp(lo, hi, M);
-}
-
-// §3.2 — z-score of their own six.
-function zscore(raw: Stats): Profile {
-  const v = vals(raw);
-  const m = mean(v);
-  const sd = Math.sqrt(mean(v.map((x) => (x - m) ** 2))) || 1;
-  const p = {} as Profile;
-  STATS.forEach((k, i) => (p[k] = (v[i] - m) / sd));
-  return p;
-}
-
-// §3.3 — penalise antagonist pairs so nobody is elite at everything.
-function applyTension(p: Profile): Profile {
-  const out = { ...p };
-  for (const [a, b] of K.tension.pairs) {
-    const overlap = Math.max(0, Math.min(out[a], out[b]));
-    const weaker = out[a] <= out[b] ? a : b;
-    out[weaker] -= K.tension.alpha * overlap;
-  }
-  return out;
-}
-
-// §3.4 — spike around center; specialists get spikier cards.
-function spike(p: Profile, c: number): Stats {
-  const v = vals(p);
-  const lop = clamp((Math.max(...v) - Math.min(...v)) / 4, 0, 1);
-  const spread = K.spike.base * (1 + lop);
-  const m = mean(v);
-  const raw = {} as Stats;
-  STATS.forEach((k) => (raw[k] = c + spread * (p[k] - m)));
-  // §3.5 — attacking cohesion: the technical four share sub-skills, so pull them
-  // toward their own group mean (preserving order and their collective level)
-  // before rounding. This kills the random-looking 18pt gaps between attacking
-  // stats; DEF/PHY are left free to break away (role explains them).
-  const am = mean(ATTACK_STATS.map((k) => raw[k]));
-  ATTACK_STATS.forEach((k) => (raw[k] = am + K.spike.cohesion * (raw[k] - am)));
-  const stats = {} as Stats;
-  STATS.forEach((k) => (stats[k] = clamp(Math.round(raw[k]), 1, 99)));
-  return stats;
 }
 
 function positionFromShape(st: Stats): { position: Position; family: Family } {
@@ -125,19 +64,6 @@ function weightedOVR(stats: Stats, family: Family): number {
   const w = WEIGHTS[family];
   const ovr = STATS.reduce((s, k) => s + stats[k] * w[k], 0);
   return Math.min(Math.round(ovr), K.ovrCap);
-}
-
-// §4 — the top range is bought with tenure + sustained real output: account age,
-// active years, lifetime contributions and how many days a year they ship.
-function legacyScore(s: Signals): number {
-  const { age, activeYears, contrib, activeDays, b, activeCap } = K.legacy;
-  const z =
-    age * Math.log(Math.min(s.account_age_years, K.ageCap) + 1) +
-    activeYears * Math.min(s.active_years, activeCap) +
-    contrib * Lg(s.total_contributions_lifetime) +
-    activeDays * (s.active_days_recent / 365) +
-    b;
-  return sigmoid(z);
 }
 
 function pickFinish(overall: number, stats: Stats, s: Signals): Finish {
@@ -180,18 +106,18 @@ function archetypeFromShape(st: Stats, finish: Finish): Archetype {
 }
 
 export function buildCard(s: Signals): Card {
-  const stats = spike(applyTension(zscore(rawStats(s))), center(s));
+  const stats = rawStats(s);
   const { position, family } = positionFromShape(stats);
   const baseOVR = weightedOVR(stats, family);
-  const L = legacyScore(s);
+  // "Seasoning" — years on the clock, 0–1 (account age caps at K.ageCap). Kept
+  // for the report; the overall is now just the position-weighted stat average.
+  const L = Math.min(s.account_age_years, K.ageCap) / K.ageCap;
 
   // Founders get a forced overall (>89) and the bespoke "founder" tier. We drive
   // `finish` directly rather than via pickFinish: any overall >= 90 would
   // otherwise auto-promote to ICON (and flip club/archetype), hijacking the look.
   const founder = FOUNDERS[s.login.toLowerCase()];
-  const overall = founder
-    ? FOUNDER_OVERALL[s.login.toLowerCase()]
-    : clamp(baseOVR + Math.round(K.legacy.bonusMax * L), 1, 99);
+  const overall = founder ? FOUNDER_OVERALL[s.login.toLowerCase()] : baseOVR;
   const finish: Finish = founder ? "founder" : pickFinish(overall, stats, s);
   const archetype = founder
     ? { name: "Founder", blurb: "co-founder of GitFut — they built the very scout reading this card" }

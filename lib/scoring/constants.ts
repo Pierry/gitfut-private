@@ -25,26 +25,15 @@ export const ATTACK_STATS: StatKey[] = ["pac", "sho", "pas", "dri"];
 // is real contribution: pull requests (the highest signal), commits, code
 // reviews, lifetime contributions, account age and active days.
 export const K = {
-  // §3.1 magnitude → where the card's stats gravitate. Internal signals only.
-  magnitude: { contrib: 0.5, pr: 0.5, review: 0.34, commit: 0.34, age: 0.08, activeDays: 0.004, b: -3.7, lo: 50, hi: 86 },
-  tension: {
-    alpha: 0.7,
-    pairs: [
-      ["sho", "def"],
-      ["dri", "phy"],
-      ["pac", "def"],
-    ] as [StatKey, StatKey][],
-  },
-  spike: { base: 8, cohesion: 0.6 },
-  // §4 the 88→99 range, bought with tenure + sustained real output (no stars/followers).
-  legacy: { age: 0.85, activeYears: 0.5, contrib: 0.55, activeDays: 1.4, b: -5.6, activeCap: 12, bonusMax: 12 },
-  ovrCap: 90,
+  // The overall is the position-weighted average of the six stats, and the stats
+  // are the metric bars themselves — so the card mirrors the receipts, no cap.
+  ovrCap: 99,
   // Account age counts, but tops out fast: 4 years is already a maxed bar —
   // anything beyond that is noise, so it's capped in the scoring.
   ageCap: 4,
   finish: {
     // ICON: mature + elite. HERO: high + very active this year. TOTY: elite across
-    // the board. (bronze/silver/gold/in-form are overall-threshold tiers.)
+    // the board. (gold/silver/bronze are overall-threshold tiers.)
     iconOverall: 90,
     iconAgeYears: 4,
     heroOverall: 88,
