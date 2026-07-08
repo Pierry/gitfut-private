@@ -1,4 +1,4 @@
-import VsBurst from "../components/VsBurst";
+import { Layers } from "lucide-react";
 
 export type WhatsNewItem = {
   /** Unique, stable slug — forms the "already seen" key in sessionStorage. */
@@ -15,10 +15,10 @@ export type WhatsNewItem = {
 
 export const WHATS_NEW: WhatsNewItem[] = [
   {
-    id: "duels",
-    title: "DUEL A RIVAL",
-    body: "Take your card head-to-head against any dev. six stats, one winner",
+    id: "collection",
+    title: "YOUR COLLECTION",
+    body: 'Every card you scout is saved in this browser. Find them under "Your Scouts" on the home page, and click any to reopen it.',
     show: true,
-    icon: VsBurst,
+    icon: Layers,
   },
 ];

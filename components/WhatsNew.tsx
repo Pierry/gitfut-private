@@ -168,12 +168,10 @@ function TeamNews() {
                     {item.title}
                   </h3>
                   {item.icon && (
-                    <div className="">
-                      {typeof item.icon === "function" ? (
-                        <item.icon size={50} />
-                      ) : (
-                        item.icon
-                      )}
+                    <div className="text-brand">
+                      {/* icon is a component (plain fn OR a lucide forwardRef);
+                          render it as an element either way. */}
+                      <item.icon size={50} />
                     </div>
                   )}
                 </div>
