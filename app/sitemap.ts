@@ -1,17 +1,11 @@
 import type { MetadataRoute } from "next";
-import { SAMPLE_LOGINS } from "@/lib/github/samples";
 
-const BASE = "https://gitfut.com";
+// Single static page (scouting is client-side via ?u=<login>), so only the home
+// URL is enumerable. Update if you deploy under a custom domain.
+const BASE = "https://pierry.github.io/gitfut-private";
 
-// Home + the showcase profiles (real, indexable example cards). Per-user pages
-// are generated on demand, so they aren't enumerated here.
+export const dynamic = "force-static";
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
-    { url: BASE, changeFrequency: "weekly", priority: 1 },
-    ...SAMPLE_LOGINS.map((login) => ({
-      url: `${BASE}/${login}`,
-      changeFrequency: "weekly" as const,
-      priority: 0.7,
-    })),
-  ];
+  return [{ url: BASE, changeFrequency: "weekly", priority: 1 }];
 }

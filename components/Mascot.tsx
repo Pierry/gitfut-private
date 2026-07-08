@@ -20,7 +20,7 @@ function Mascot({ size = 220, className, animate = true }: MascotProps) {
   return (
     <img
       src="/mascot.webp"
-      alt="GitFut mascot — an octopus footballer kicking the World Cup 26 ball"
+      alt="GitFut mascot, an octopus footballer kicking the World Cup 26 ball"
       width={size}
       height={size}
       className={`${animate ? "animate-float" : ""} ${className ?? ""}`}

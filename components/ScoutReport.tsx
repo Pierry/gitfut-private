@@ -121,7 +121,7 @@ function Section({
 
 function PlaystyleList({ playstyles, accent }: { playstyles: Playstyle[]; accent: string }) {
   if (playstyles.length === 0) {
-    return <p className="py-1 text-[13.5px] leading-snug text-ink-mute">No standout traits yet — keep shipping.</p>;
+    return <p className="py-1 text-[13.5px] leading-snug text-ink-mute">No standout traits yet, keep shipping.</p>;
   }
   return (
     <ul className="flex flex-col gap-[11px] pt-1">

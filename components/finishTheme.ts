@@ -138,12 +138,12 @@ export function duelThemes(challenger: Card, opponent: Card): { home: ResultThem
 // Founders burst in their own accent. Consumed by the card reveal (the Duel
 // deliberately keeps its full time clean — no confetti).
 const CONFETTI: Partial<Record<Finish, string[]>> = {
-  toty: ["#e9cc74", "#d4af37", "#7fa8ff", "#ffffff", "#39d353"],
-  icon: ["#e9cc74", "#d4af37", "#f5f0e1", "#ffffff", "#39d353"],
-  totw: ["#39d353", "#e9cc74", "#ffffff", "#7fa8ff"],
+  toty: ["#e9cc74", "#d4af37", "#7fa8ff", "#ffffff", "#7ec8f2"],
+  icon: ["#e9cc74", "#d4af37", "#f5f0e1", "#ffffff", "#7ec8f2"],
+  totw: ["#7ec8f2", "#e9cc74", "#ffffff", "#7fa8ff"],
 };
 
 export function confettiPalette(card: Card): string[] {
-  if (card.founder) return [card.founder.accent, "#ffffff", "#39d353"];
-  return CONFETTI[card.finish] ?? ["#39d353", "#e9cc74", "#ffffff"];
+  if (card.founder) return [card.founder.accent, "#ffffff", "#7ec8f2"];
+  return CONFETTI[card.finish] ?? ["#7ec8f2", "#e9cc74", "#ffffff"];
 }

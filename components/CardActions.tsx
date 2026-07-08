@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { toBlob, toPng } from "html-to-image";
 import { Check, ChevronDown, Copy, Download, ImageDown, Link2, Share2 } from "lucide-react";
-import type { Card } from "@/lib/scoring/types";
-import { cardUrl, intentUrl, nativeSharePayload } from "@/lib/share";
+import type { Card, Signals } from "@/lib/scoring/types";
+import { cardUrl, xIntentFor, linkedinIntentFor, nativeSharePayloadFor } from "@/lib/share";
+import { encodeShare } from "@/lib/cardLink";
 import { renderCardImage } from "@/lib/capture";
 import { useShareActions } from "@/hooks/useShareActions";
 import { XLogo, LinkedInLogo } from "./BrandIcons";
@@ -51,11 +52,15 @@ const brandHover = (brand: string) => ({
 
 export default function CardActions({
   card,
+  signals,
   targetRef,
   storyRef,
   canonicalCountry = "",
 }: {
   card: Card;
+  /** Raw signals the card was built from; when present, the share link packs
+   *  these (tiny) instead of the whole card, so the URL stays short. */
+  signals?: Signals;
   targetRef: React.RefObject<HTMLDivElement | null>;
   /** Off-screen 1080×1920 story canvas, captured for the Instagram-Story export. */
   storyRef: React.RefObject<HTMLDivElement | null>;
@@ -65,6 +70,8 @@ export default function CardActions({
   const [done, setDone] = useState<ActionId | null>(null);
   const [busy, setBusy] = useState<ActionId | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [linkToast, setLinkToast] = useState(false); // "link copied, it carries the card" note
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const caretRef = useRef<HTMLButtonElement>(null);
@@ -96,6 +103,27 @@ export default function CardActions({
   const shareCard =
     card.country && card.country !== canonicalCountry ? card : { ...card, country: "" };
 
+  // Self-contained share link: the whole card packed into `?c=` so the recipient
+  // opens the exact card with NO token (this fork has no server to look it up).
+  // Encoded async (gzip); until it's ready, fall back to the public gitfut.com URL.
+  // Pack the tiny signals when we have them AND the flag isn't a manual override
+  // (buildCard on decode would lose the override); otherwise pack the full card,
+  // which carries the country. Either way the recipient opens with no token.
+  const [shareLink, setShareLink] = useState("");
+  useEffect(() => {
+    let cancelled = false;
+    const seed = shareCard.country ? undefined : signals;
+    encodeShare(shareCard, seed).then((enc) => {
+      if (!cancelled) setShareLink(`${window.location.origin}${window.location.pathname}?c=${enc}`);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // shareCard is derived purely from card + canonicalCountry
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [card, canonicalCountry, signals]);
+  const shareHref = shareLink || cardUrl(shareCard);
+
   // Share gestures (native sheet + copy link) — shared with DuelView. The
   // native payload attaches the freshly rendered card image when the platform
   // can share files; otherwise it falls back to the text+url payload, and a
@@ -103,7 +131,7 @@ export default function CardActions({
   const { canNativeShare, nativeShare, copyLink } = useShareActions({
     getSharePayload: async () => {
       const node = targetRef.current;
-      const payload = nativeSharePayload(shareCard);
+      const payload = nativeSharePayloadFor(shareCard, shareHref);
       if (node && "canShare" in navigator) {
         const blob = await renderCardImage(node, (n) => toBlob(n, RENDER_OPTS));
         if (blob) {
@@ -115,8 +143,8 @@ export default function CardActions({
       }
       return payload;
     },
-    getIntentUrl: () => intentUrl("x", shareCard),
-    getCopyUrl: () => cardUrl(shareCard),
+    getIntentUrl: () => xIntentFor(shareCard, shareHref),
+    getCopyUrl: () => shareHref,
   });
 
   // Escape closes the export menu (returning focus to the caret that opened
@@ -244,7 +272,7 @@ export default function CardActions({
         navigator.canShare({ files: [file] })
       ) {
         try {
-          await navigator.share({ ...nativeSharePayload(shareCard), files: [file] });
+          await navigator.share({ ...nativeSharePayloadFor(shareCard, shareHref), files: [file] });
           shared = true;
         } catch (e) {
           if (e instanceof Error && e.name === "AbortError") {
@@ -268,7 +296,13 @@ export default function CardActions({
       // it into a throw here so track shows its error state instead of a false
       // "Link copied".
       if (!(await copyLink())) throw new Error("clipboard unavailable");
+      // Explain the link is self-contained so the sharer knows it just works.
+      setLinkToast(true);
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+      toastTimer.current = setTimeout(() => setLinkToast(false), 6000);
     });
+
+  useEffect(() => () => void (toastTimer.current && clearTimeout(toastTimer.current)), []);
 
   // The split button's main zone tells the whole story: idle label, per-action
   // progress, then the action's done copy.
@@ -280,6 +314,32 @@ export default function CardActions({
 
   return (
     <div className="flex w-full flex-col gap-[10px]">
+      {/* copy-link confirmation: tells the sharer the link is self-contained */}
+      {linkToast && (
+        <div
+          role="status"
+          className="animate-pop fixed bottom-[22px] left-1/2 z-[80] flex w-[min(440px,92vw)] -translate-x-1/2 items-start gap-[11px] rounded-[14px] border border-brand/40 bg-bg-deep/95 px-[16px] py-[13px] shadow-[0_20px_60px_rgba(0,0,0,.55)] backdrop-blur-md"
+        >
+          <span className="mt-[1px] flex h-[22px] w-[22px] flex-none items-center justify-center rounded-full bg-brand/20 text-brand">
+            <Check size={14} strokeWidth={2.8} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-display text-[14px] tracking-[.02em] text-ink">LINK COPIED</p>
+            <p className="mt-[3px] text-[12.5px] leading-[1.45] text-ink-soft">
+              Share it anywhere. It carries a full copy of this card, so anyone opens it, even without a GitHub token.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setLinkToast(false)}
+            aria-label="Dismiss"
+            className="flex h-[20px] w-[20px] flex-none items-center justify-center rounded-full text-[12px] text-ink-mute transition hover:text-ink"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* primary — only where the platform has a native share sheet
           (canNativeShare stays false through SSR/first paint and is revealed
           post-hydration); on desktop the CTA never renders, so it can't
@@ -288,7 +348,7 @@ export default function CardActions({
         <button
           type="button"
           onClick={nativeShare}
-          className="font-display group relative flex h-[50px] w-full items-center justify-center gap-[9px] overflow-hidden rounded-xl bg-gradient-to-b from-brand to-brand-mid text-[18px] tracking-[.05em] text-[#04130a] shadow-[0_0_0_1px_rgba(57,211,83,.45),0_10px_28px_-6px_rgba(57,211,83,.5)] transition-all duration-200 ease-out hover:-translate-y-[1px] hover:shadow-[0_0_0_1px_rgba(86,224,107,.6),0_14px_34px_-6px_rgba(57,211,83,.62)] active:translate-y-0 active:scale-[.985] active:duration-75"
+          className="font-display group relative flex h-[50px] w-full items-center justify-center gap-[9px] overflow-hidden rounded-xl bg-gradient-to-b from-brand to-brand-mid text-[18px] tracking-[.05em] text-[#04130a] shadow-[0_0_0_1px_rgba(126,200,242,.45),0_10px_28px_-6px_rgba(126,200,242,.5)] transition-all duration-200 ease-out hover:-translate-y-[1px] hover:shadow-[0_0_0_1px_rgba(165,216,247,.6),0_14px_34px_-6px_rgba(126,200,242,.62)] active:translate-y-0 active:scale-[.985] active:duration-75"
         >
           <span
             aria-hidden
@@ -305,7 +365,7 @@ export default function CardActions({
       <div className="flex w-full gap-[8px]">
         <button
           type="button"
-          onClick={() => window.open(intentUrl("x", shareCard), "_blank", "noopener,noreferrer")}
+          onClick={() => window.open(xIntentFor(shareCard, shareHref), "_blank", "noopener,noreferrer")}
           title="Share on X"
           aria-label="Share on X"
           className={ICON_BTN}
@@ -315,7 +375,7 @@ export default function CardActions({
         </button>
         <button
           type="button"
-          onClick={() => window.open(intentUrl("linkedin", shareCard), "_blank", "noopener,noreferrer")}
+          onClick={() => window.open(linkedinIntentFor(shareHref), "_blank", "noopener,noreferrer")}
           title="Share on LinkedIn"
           aria-label="Share on LinkedIn"
           className={ICON_BTN}

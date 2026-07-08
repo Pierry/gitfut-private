@@ -4,7 +4,7 @@ import Background from "@/components/Background";
 import Mascot from "@/components/Mascot";
 
 export const metadata: Metadata = {
-  title: "404 · Offside — GitFut",
+  title: "404 · Offside · GitFut",
   robots: { index: false },
 };
 
@@ -19,11 +19,11 @@ function OffsideFlag() {
       viewBox="0 0 118 150"
       fill="none"
       aria-hidden
-      style={{ filter: "drop-shadow(0 6px 16px rgba(57,211,83,.35))" }}
+      style={{ filter: "drop-shadow(0 6px 16px rgba(126,200,242,.35))" }}
     >
       <defs>
         <pattern id="offside-check" width="22" height="22" patternUnits="userSpaceOnUse">
-          <rect width="22" height="22" fill="#39d353" />
+          <rect width="22" height="22" fill="#7ec8f2" />
           <rect width="11" height="11" fill="#0b2c17" />
           <rect x="11" y="11" width="11" height="11" fill="#0b2c17" />
         </pattern>
@@ -65,7 +65,7 @@ export default function NotFound() {
 
         <h1 className="font-display mt-2 text-[clamp(64px,16vw,132px)] font-black leading-[.84]">
           <span aria-hidden>OFFSIDE</span>
-          <span className="sr-only">Offside — 404, page not found</span>
+          <span className="sr-only">Offside. 404, page not found</span>
         </h1>
 
         <p className="font-mono mt-2 text-[13px] font-medium tracking-[.55em] text-ink-faint">
@@ -73,7 +73,7 @@ export default function NotFound() {
         </p>
 
         <p className="mt-5 max-w-[430px] text-[15.5px] leading-[1.55] text-ink-soft">
-          This page strayed past the last defender — there&rsquo;s no route here on the pitch.
+          This page strayed past the last defender. There&rsquo;s no route here on the pitch.
         </p>
 
         <div className="mt-8 flex flex-col items-center gap-[14px]">

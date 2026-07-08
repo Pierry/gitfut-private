@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Bebas_Neue, Inter, JetBrains_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
-import { Analytics } from "@vercel/analytics/next";
 
 // Display — ultra-condensed all-caps for the WC26 "tournament" impact.
 const display = Bebas_Neue({
@@ -30,12 +29,11 @@ const dinCond = localFont({ src: "./fonts/DINPro-Cond.otf", variable: "--font-di
 const dinBold = localFont({ src: "./fonts/DINPro-CondBold.otf", variable: "--font-din-bold", display: "swap" });
 const dinMedium = localFont({ src: "./fonts/DINPro-CondMedium.otf", variable: "--font-din-medium", display: "swap" });
 
-const TITLE = "GitFut — your GitHub, rated out of 99";
+const TITLE = "GitFut Private · your GitHub, private repos included, rated out of 99";
 const DESCRIPTION =
-  "Rate any GitHub profile out of 99 as a FIFA-Ultimate-Team-style player card, scored from real commits, stars and contributions. Get scouted and share your card.";
+  "Rate a GitHub profile out of 99 as a FIFA-Ultimate-Team-style player card, private contributions you can see included. Runs entirely in your browser with your own token.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://gitfut.com"),
   title: TITLE,
   description: DESCRIPTION,
   keywords: [
@@ -48,12 +46,10 @@ export const metadata: Metadata = {
     "World Cup",
     "GitFut",
   ],
-  alternates: { canonical: "/" },
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,
-    url: "https://gitfut.com",
-    siteName: "GitFut",
+    siteName: "GitFut Private",
     type: "website",
   },
   twitter: {
@@ -64,7 +60,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#02001e",
+  themeColor: "#060609",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -73,10 +69,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       className={`${display.variable} ${sans.variable} ${mono.variable} ${dinCond.variable} ${dinBold.variable} ${dinMedium.variable} antialiased`}
     >
-      <body>
-        {children}
-        <Analytics />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

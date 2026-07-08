@@ -9,9 +9,9 @@
   --font-sans: var(--font-inter);
   --font-mono: var(--font-jetbrains);
 
-  /* WC26 spine — blue-black midnight / surfaces / gray / ink / gold */
-  --color-bg: #02001e;
-  --color-bg-deep: #010012;
+  /* WC26 spine — near-black midnight (pulled toward black) / surfaces / gray / ink / gold */
+  --color-bg: #060609;
+  --color-bg-deep: #020203;
   --color-panel: #0b0930;
   --color-surface: #0b0930;
   --color-surface-2: #130f3d;
@@ -24,11 +24,11 @@
   --color-ink-faint: #8b949e;
   --color-ink-mute: #6e7681;
 
-  /* GitHub green — "the action" */
-  --color-brand: #39d353;
-  --color-brand-hi: #56e06b;
-  --color-brand-mid: #26a641;
-  --color-brand-deep: #006d32;
+  /* Baby blue — "the action" (this internal private fork's own accent) */
+  --color-brand: #7ec8f2;
+  --color-brand-hi: #a5d8f7;
+  --color-brand-mid: #4aa3e0;
+  --color-brand-deep: #2472b0;
 
   /* WC26 gold — prestige metal (reserved) */
   --color-gold: #d4af37;

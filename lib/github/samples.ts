@@ -1,10 +1,11 @@
 import { buildCard } from "@/lib/scoring/engine";
 import type { Card, Signals } from "@/lib/scoring/types";
 
-// Home-fan showcase: four REAL GitHub accounts, so every card resolves to a live
+// Home-fan showcase: REAL GitHub accounts, so every card resolves to a live
 // scout when clicked (no 404s). Signals were captured once and baked here to keep
 // the home page fast (no per-load GitHub fetch). Tiers: torvalds / ThePrimeagen /
-// Theo Browne = icon, PewDiePie (pewdiepie-archdaemon) = gold.
+// Theo Browne = icon, PewDiePie (pewdiepie-archdaemon) = gold. Pierry (the maker
+// of the private fork) rounds it out with his public card.
 // Avatars must use the avatars.githubusercontent.com form — the
 // github.com/<login>.png redirect fails the <img crossOrigin> check.
 
@@ -103,6 +104,32 @@ const RAW: Signals[] = [
     issues_closed: 4,
     recent_commits: 1488,
     recent_spike: false,
+  },
+  {
+    // Baked to reproduce his real public gitfut.com card: 90 ICON, CM, Galáctico,
+    // Java — with the exact scouting metrics (573 commits, 382 stars, 181 top-repo,
+    // 58 PRs, 136 followers, 10 languages, 1 issue, 1.1k contributions).
+    login: "Pierry",
+    name: "Pierry Borges",
+    avatarUrl: "https://avatars.githubusercontent.com/u/2083495?s=480&v=4",
+    location: "São Paulo, Brasil",
+    followers: 136,
+    account_age_years: 13.94,
+    public_repos: 61,
+    total_stars_owned: 382,
+    max_repo_stars: 181,
+    languages: 10,
+    rankedLanguages: ["Java", "Kotlin", "TypeScript", "Shell", "JavaScript"],
+    topLanguage: "Java",
+    recent_contributions: 700,
+    active_days_recent: 200,
+    active_years: 12,
+    total_contributions_lifetime: 1100,
+    prs_to_others: 58,
+    reviews: 0,
+    issues_closed: 1,
+    recent_commits: 573,
+    recent_spike: true,
   },
 ];
 

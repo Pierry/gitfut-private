@@ -53,6 +53,17 @@ export default function FooterCredit() {
             )}
           </span>
         ))}
+
+        {/* private fork maker credit */}
+        <span className="text-ink-mute">· and improved for private repos by</span>
+        <a
+          href="https://github.com/Pierry"
+          target="_blank"
+          rel="noopener"
+          className="rounded-[7px] px-[6px] py-[3px] text-ink-dim transition hover:bg-white/8 hover:text-ink"
+        >
+          github.com/Pierry
+        </a>
       </div>
     </div>
   );

@@ -1,15 +1,14 @@
-import "server-only";
-import { tokenPool, pickToken, pickFailover, recordTokenHealth, benchToken, type PoolToken } from "./tokens";
-
-// Server-only GitHub client, on the GraphQL API (api.github.com/graphql).
-// GraphQL is authenticated-only, so a token is REQUIRED — which also puts
-// us on the ~5,000 req/hr tier instead of the ~60/hr unauthenticated REST tier.
-// Tokens come from the pool in ./tokens (GITHUB_TOKENS, or GITHUB_TOKEN as a
-// pool of one): each scout is hash-sharded to one token, with a single failover
-// retry if that token turns out to be rate-limited.
-// Crucially, the GraphQL `contributionsCollection` is the ONLY GitHub API that
-// returns real commit / PR / review / issue / calendar data — the numbers the
-// scoring layer used to estimate.
+// GitHub client on the GraphQL API (api.github.com/graphql). This is the PRIVATE
+// fork, and it runs entirely in the VIEWER's browser: every scout is
+// authenticated with the viewer's own token (their PAT, held only in
+// localStorage) and calls GitHub directly (CORS-enabled), so GitHub reveals the
+// private contribution counts that viewer is allowed to see — e.g. teammates in
+// a shared org — and the token never touches any server. Public scouting lives
+// on the original gitfut.com.
+//
+// The GraphQL `contributionsCollection` is the ONLY GitHub API that returns real
+// commit / PR / review / issue / calendar data — including the private
+// (restricted) count that matches the profile graph.
 //
 // Lifetime contributions need one contributionsCollection window per calendar
 // year (each window must span ≤1yr). GitHub's resolver times out (~10s) if too
@@ -93,7 +92,7 @@ interface UserNode {
     totalPullRequestContributions: number;
     totalPullRequestReviewContributions: number;
     totalIssueContributions: number;
-    restrictedContributionsCount: number; // private contributions, when the user shows them
+    restrictedContributionsCount: number; // private contributions the viewer may see
     contributionCalendar: { weeks: { contributionDays: { contributionCount: number }[] }[] };
   };
 }
@@ -106,11 +105,10 @@ interface YearContrib {
   restrictedContributionsCount: number;
 }
 
-// POSTs a query, retrying transient failures. Terminal failures (bad token,
-// not found, rate limit) throw a GithubError; success returns the user node.
-// Every response's rate-limit headers feed the token-health record; a limited
-// response additionally benches the token so failover skips it.
-async function gql<T>(query: string, login: string, tok: PoolToken, retries = 1): Promise<{ user: T | null }> {
+// POSTs a query with the viewer's token, retrying transient failures. Terminal
+// failures (bad token, not found, rate limit) throw a GithubError; success
+// returns the user node.
+async function gql<T>(query: string, login: string, token: string, retries = 1): Promise<{ user: T | null }> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     let res: Response;
     const ctrl = new AbortController();
@@ -118,7 +116,7 @@ async function gql<T>(query: string, login: string, tok: PoolToken, retries = 1)
     try {
       res = await fetch(ENDPOINT, {
         method: "POST",
-        headers: { Authorization: `Bearer ${tok.token}`, "Content-Type": "application/json" },
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ query, variables: { login } }),
         signal: ctrl.signal,
       });
@@ -128,18 +126,13 @@ async function gql<T>(query: string, login: string, tok: PoolToken, retries = 1)
         await delay();
         continue;
       }
-      return fail("network", "Couldn't reach GitHub — check your connection.");
+      return fail("network", "Couldn't reach GitHub. Check your connection.");
     } finally {
       clearTimeout(timer);
     }
 
-    recordTokenHealth(tok.idx, res.headers); // fire-and-forget, never blocks
-
-    if (res.status === 401) return fail("config", "GitHub token is invalid or expired.");
-    if (res.status === 403 || res.status === 429) {
-      benchToken(tok.idx, res.headers);
-      return fail("ratelimit", "GitHub rate limit hit. Try again shortly.");
-    }
+    if (res.status === 401) return fail("config", "Your GitHub token is invalid or expired.");
+    if (res.status === 403 || res.status === 429) return fail("ratelimit", "GitHub rate limit hit. Try again shortly.");
     if (res.status >= 500) {
       if (attempt < retries) {
         await delay();
@@ -164,7 +157,6 @@ async function gql<T>(query: string, login: string, tok: PoolToken, retries = 1)
     // with code "graphql_rate_limit"). Match all so an exhausted quota reports as a
     // rate limit rather than falling through to a misleading "no user found".
     if (body.errors?.some((e) => e.type === "RATE_LIMITED" || e.type === "RATE_LIMIT")) {
-      benchToken(tok.idx, res.headers);
       return fail("ratelimit", "GitHub rate limit hit. Try again shortly.");
     }
     return { user: body.data?.user ?? null };
@@ -224,7 +216,7 @@ function chunk<T>(arr: T[], size: number): T[][] {
 // rather than failing the scout.
 async function fetchLifetime(
   login: string,
-  tok: PoolToken,
+  token: string,
   createdYear: number,
   currentYear: number,
   nowIso: string,
@@ -238,7 +230,7 @@ async function fetchLifetime(
         const { user } = await gql<Record<string, YearContrib | null>>(
           lifetimeQuery(batch, currentYear, nowIso),
           login,
-          tok,
+          token,
         );
         if (!user) return 0;
         return batch.reduce((s, y) => {
@@ -260,33 +252,18 @@ async function fetchLifetime(
   return sums.reduce((a, b) => a + b, 0);
 }
 
-export async function fetchProfile(username: string, now = new Date()): Promise<RawPayload> {
+// Scout `username` through the VIEWER's token. The token is required — this fork
+// does no unauthenticated / shared-pool scouting.
+export async function fetchProfile(username: string, token: string, now = new Date()): Promise<RawPayload> {
   const login = username.trim().replace(/^@/, "");
   if (!VALID.test(login)) return fail("invalid", "That doesn't look like a GitHub username.");
+  if (!token) return fail("config", "A GitHub token is required to scout.");
 
-  const pool = tokenPool();
-  if (!pool.length) return fail("config", "Server is missing a GitHub token.");
-
-  // One token per scout (hash-sharded on the login), threaded through every
-  // query below so a user's profile + lifetime batches never straddle tokens.
-  let tok = pickToken(login, pool) as PoolToken;
-
-  let user: UserNode | null;
-  try {
-    ({ user } = await gql<UserNode>(profileQuery(), login, tok));
-  } catch (e) {
-    // Only a rate limit is cured by another token (a timeout or 5xx would just
-    // fail again) — retry once on the healthiest token, if the pool has one.
-    if ((e as GithubError).type !== "ratelimit" || pool.length < 2) throw e;
-    const fallback = await pickFailover(tok.idx, pool);
-    if (!fallback) throw e; // every other token is benched too
-    tok = fallback;
-    ({ user } = await gql<UserNode>(profileQuery(), login, tok));
-  }
+  const { user } = await gql<UserNode>(profileQuery(), login, token);
   if (!user) return fail("notfound", "No GitHub user by that name.");
 
   const createdYear = new Date(user.createdAt).getUTCFullYear();
-  const lifetimeContributions = await fetchLifetime(login, tok, createdYear, now.getUTCFullYear(), now.toISOString());
+  const lifetimeContributions = await fetchLifetime(login, token, createdYear, now.getUTCFullYear(), now.toISOString());
 
   return normalize(user, lifetimeContributions);
 }

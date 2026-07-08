@@ -130,7 +130,7 @@ function TeamNews() {
           className="pointer-events-none absolute inset-x-0 top-0 h-px"
           style={{
             background:
-              "linear-gradient(90deg, transparent, rgba(57,211,83,.55), transparent)",
+              "linear-gradient(90deg, transparent, rgba(126,200,242,.55), transparent)",
           }}
         />
 

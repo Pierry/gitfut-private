@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
 
-const BASE = "https://gitfut.com";
+const BASE = "https://pierry.github.io/gitfut-private";
+
+export const dynamic = "force-static";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: { userAgent: "*", allow: "/", disallow: "/api/" },
+    rules: { userAgent: "*", allow: "/" },
     sitemap: `${BASE}/sitemap.xml`,
-    host: BASE,
   };
 }

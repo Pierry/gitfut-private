@@ -18,7 +18,7 @@ const CONTRIB_GRID_SVG = (() => {
       const seed = (r * 7 + c * 13) % 11;
       const lit = seed < 3;
       const attrs = lit
-        ? ` fill="#39d353" class="gf-grid-cell" style="--gf-dur:${2.4 + seed * 0.4}s"`
+        ? ` fill="#7ec8f2" class="gf-grid-cell" style="--gf-dur:${2.4 + seed * 0.4}s"`
         : ` fill="#1b2530"`;
       rects += `<rect x="${c * 16}" y="${r * 16}" width="12" height="12" rx="2.5"${attrs}/>`;
     }
@@ -48,7 +48,7 @@ export default function Background() {
           width: "120%",
           height: "92%",
           background:
-            "radial-gradient(50% 62% at 50% 0%, rgba(57,211,83,.16), rgba(13,17,23,.2) 46%, rgba(13,17,23,0) 72%)",
+            "radial-gradient(50% 62% at 50% 0%, rgba(126,200,242,.16), rgba(13,17,23,.2) 46%, rgba(13,17,23,0) 72%)",
         }}
       />
       {/* left cool wash */}
@@ -59,7 +59,7 @@ export default function Background() {
           left: "4%",
           width: "38%",
           height: "78%",
-          background: "radial-gradient(closest-side, rgba(38,166,65,.12), transparent 72%)",
+          background: "radial-gradient(closest-side, rgba(74,163,224,.12), transparent 72%)",
           filter: "blur(18px)",
           transform: "rotate(16deg)",
         }}

@@ -26,7 +26,7 @@ const SAFE_H = STORY_H - SAFE_TOP - SAFE_BOTTOM; // 1420px usable
 const CARD_W = 606;
 const CARD_H = Math.round(CARD_W * (820 / 540)); // ≈ 920
 
-const BRAND = "#39d353";
+const BRAND = "#7ec8f2";
 
 // theme.glow is already an `rgba(r,g,b,a)` string (finishTheme.ts). Re-alpha it
 // so we can reuse the tier hue at a chosen opacity for the room wash.

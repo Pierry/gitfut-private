@@ -86,6 +86,19 @@ export function nativeSharePayload(card: Card): { title: string; text: string; u
   };
 }
 
+// Same as the above, but carrying an EXPLICIT url — used by the private fork to
+// share a self-contained `?c=` link (the whole card packed into the URL) instead
+// of gitfut.com/<login>, so the recipient sees it without a token. See cardLink.
+export function xIntentFor(card: Card, url: string): string {
+  return tweetIntent(shareMessage(card), url);
+}
+export function linkedinIntentFor(url: string): string {
+  return "https://www.linkedin.com/sharing/share-offsite/?url=" + encodeURIComponent(url);
+}
+export function nativeSharePayloadFor(card: Card, url: string): { title: string; text: string; url: string } {
+  return { title: "GitFut", text: shareMessage(card), url };
+}
+
 // Kept for backward-compat with any existing import.
 export function shareUrl(card: Card): string {
   return intentUrl("x", card);
@@ -104,7 +117,7 @@ const duelLines = (opponent: string): string[] => [
   `just dragged @${opponent} onto the pitch. full-time score inside.`,
   `me vs @${opponent}, settled on github stats. someone got cooked.`,
   `called out @${opponent} for a duel. the scoreline does the talking.`,
-  `six stats, no VAR. me vs @${opponent} — result inside.`,
+  `six stats, no VAR. me vs @${opponent}, result inside.`,
 ];
 
 export function duelShareMessage(challenger: string, opponent: string): string {

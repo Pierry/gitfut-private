@@ -23,7 +23,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
         <div className="font-display text-[12px] font-bold tracking-[.3em] text-brand">SCOUT REPORT</div>
         <h1 className="font-display mt-3 text-[clamp(30px,6vw,48px)] font-black leading-[.95]">The scout hit a snag</h1>
         <p className="mt-3 text-[15.5px] leading-[1.5] text-ink-soft">
-          Something broke mid-scout. Try again — if it keeps happening, the pitch may be down for a moment.
+          Something broke mid-scout. Try again. If it keeps happening, the pitch may be down for a moment.
         </p>
         <div className="mt-7 flex items-center gap-3">
           <button

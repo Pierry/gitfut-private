@@ -46,6 +46,6 @@ export function derivePlaystyles(s: Signals): Playstyle[] {
       name: def.name,
       icon: def.icon,
       plus: val >= def.plus,
-      reason: `${formatCount(val)} ${def.noun}${val >= def.plus ? " — elite tier" : ""}.`,
+      reason: `${formatCount(val)} ${def.noun}${val >= def.plus ? ", elite tier" : ""}.`,
     }));
 }

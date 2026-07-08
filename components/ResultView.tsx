@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import type { Card } from "@/lib/scoring/types";
+import type { Card, Signals } from "@/lib/scoring/types";
 import PlayerCard from "./PlayerCard";
 import StoryFrame from "./StoryFrame";
 import CardActions from "./CardActions";
@@ -10,7 +10,6 @@ import DuelButton from "./DuelButton";
 import FlagPicker from "./FlagPicker";
 import Mascot from "./Mascot";
 import FooterCredit from "./FooterCredit";
-import BuyMeACoffee from "./BuyMeACoffee";
 import GithubStar from "./GithubStar";
 import dynamic from "next/dynamic";
 import { AttributesPanel, MetricsPanel, ReportHeader } from "./ScoutReport";
@@ -22,6 +21,8 @@ const HowItWorksModal = dynamic(() => import("./HowItWorksModal"), { ssr: false 
 
 interface Props {
   card: Card;
+  /** Raw signals the card was built from; lets the share link stay short. */
+  signals?: Signals;
   onBack: () => void;
   /** Edit the card's flag from the report (click-the-flag picker). */
   onCountryChange: (code: string) => void;
@@ -37,6 +38,7 @@ const CARD_WIDTH = "clamp(220px, min(80vw, 40vh), 332px)";
 
 export default function ResultView({
   card,
+  signals,
   onBack,
   onCountryChange,
   stars,
@@ -174,6 +176,7 @@ export default function ResultView({
           <div className="flex flex-col gap-[10px]" style={{ width: CARD_WIDTH }}>
             <CardActions
               card={card}
+              signals={signals}
               targetRef={captureRef}
               storyRef={storyRef}
               canonicalCountry={canonicalCountry}
@@ -214,8 +217,6 @@ export default function ResultView({
         <StoryFrame ref={storyRef} card={card} />
       </div>
     </main>
-
-    <BuyMeACoffee />
 
     {modalOpen && <HowItWorksModal onClose={() => setModalOpen(false)} />}
     </>
