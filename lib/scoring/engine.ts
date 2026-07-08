@@ -37,15 +37,6 @@ function rawStats(s: Signals): Stats {
   };
 }
 
-// Each signal owns a role: commits=striker, PRs=creator, reviews=defender, etc.
-const STAT_POSITION: Record<StatKey, Position> = {
-  sho: "ST", // commits — the finisher, pure output
-  pac: "RW", // active days — the winger, always on
-  pas: "CAM", // PRs into others' code — the creative link
-  dri: "CM", // seasoning/breadth — the box-to-box generalist
-  def: "CB", // reviews — the stopper, quality gate
-  phy: "CDM", // lifetime volume — the holding workhorse
-};
 const POSITION_FAMILY: Record<Position, Family> = {
   ST: "Forward",
   RW: "Forward",
@@ -54,36 +45,36 @@ const POSITION_FAMILY: Record<Position, Family> = {
   CDM: "Anchor",
   CB: "Anchor",
 };
-// How much each signal counts toward the role read. PAC (active days) saturates —
-// anyone employed shows up most days — so it's damped; the discriminating signals
-// (PRs, reviews) are amplified. Iterated in this order so it doubles as the
-// tie-break priority: collaboration/stewardship/output beat "just shows up".
-const ROLE_ORDER: StatKey[] = ["pas", "def", "sho", "dri", "phy", "pac"];
-const ROLE_WEIGHT: Record<StatKey, number> = {
-  pas: 1.3,
-  def: 1.2,
-  sho: 1.1,
-  dri: 1.0,
-  phy: 0.9,
-  pac: 0.4,
-};
 
-// Position from the player's STANDOUT signal — the stat furthest above their own
-// six-stat average (weighted). So the card reads HOW a dev contributes (ships,
-// reviews, links, guards), not merely that they log active days — which used to
-// force almost everyone to RW.
+// Position from the three REAL contribution modes — commits (ship / ST), PRs into
+// others' code (create / CAM), reviews (guard / CB) — with PRs and reviews mildly
+// prized as the higher-signal collaborative work. PAC (active days), DRI
+// (seasoning) and PHY (lifetime volume) all track tenure and "showing up" more
+// than they describe a style, so they only flavour the edges — they never pick
+// the role. This is what stops almost everyone landing on RW (PAC used to win the
+// family) and lets heavy reviewers read as CB even on an otherwise strong card.
 function positionFromShape(st: Stats): { position: Position; family: Family } {
-  const mean = STATS.reduce((s, k) => s + st[k], 0) / STATS.length;
-  let best: StatKey = ROLE_ORDER[0];
-  let bestVal = -Infinity;
-  for (const k of ROLE_ORDER) {
-    const edge = (st[k] - mean) * ROLE_WEIGHT[k];
-    if (edge > bestVal) {
-      bestVal = edge;
-      best = k;
-    }
+  const modes = { sho: st.sho, pas: st.pas * 1.1, def: st.def * 1.1 };
+  const ranked = (Object.keys(modes) as (keyof typeof modes)[]).sort((a, b) => modes[b] - modes[a]);
+  const top = ranked[0];
+  const margin = modes[ranked[0]] - modes[ranked[1]];
+  const peak = STATS.reduce((m, k) => (st[k] > st[m] ? k : m), "pac" as StatKey);
+
+  let position: Position;
+  if (margin <= 6) {
+    // No clear specialty — a box-to-box all-rounder, unless raw volume is their
+    // single standout (a holding workhorse).
+    position = peak === "phy" && st.phy >= 90 ? "CDM" : "CM";
+  } else if (top === "sho") {
+    // A shipper. RW only for the rare high-tempo roamer (always-on + broad).
+    position = st.pac >= 92 && st.dri >= 85 ? "RW" : "ST";
+  } else if (top === "pas") {
+    // A creator. Reviews nearly as high → a deep-lying playmaker, not a pure CAM.
+    position = st.def >= st.pas - 8 ? "CM" : "CAM";
+  } else {
+    // A reviewer/guard. Big lifetime volume tips it to a holding anchor.
+    position = st.phy >= 90 && st.phy >= st.def ? "CDM" : "CB";
   }
-  const position = STAT_POSITION[best];
   return { position, family: POSITION_FAMILY[position] };
 }
 
