@@ -20,7 +20,7 @@ export const STAT_LABELS: Record<StatKey, string> = {
 export const ATTACK_STATS: StatKey[] = ["pac", "sho", "pas", "dri"];
 
 export const K = {
-  magnitude: { w1: 0.5, w2: 0.4, w3: 0.5, w4: 0.08, b: -2.8, lo: 48, hi: 82 },
+  magnitude: { w1: 0.5, w2: 0.4, w3: 0.5, w4: 0.08, b: -2.6, lo: 57, hi: 82 },
   tension: {
     alpha: 0.7,
     pairs: [
@@ -32,7 +32,7 @@ export const K = {
   spike: { base: 8, cohesion: 0.6 },
   legacy: { a: 1.0, b: 0.7, c: 0.3, d: 0.3, e: 0.3, f: 6.0, activeCap: 15, bonusMax: 11 },
   ovrCap: 88,
-  finish: { iconMin: 90, totyMin: 85, totyLegacy: 0.5, goldMin: 75, silverMin: 65 },
+  finish: { iconMin: 92, totyMin: 85, totyLegacy: 0.5, goldMin: 72, silverMin: 60 },
   iconAllowlist: ["torvalds"],
 };
 
