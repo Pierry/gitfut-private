@@ -10,9 +10,10 @@
 
 <br/><br/>
 
-<a href="https://gitfut.com/torvalds"><img src="https://gitfut.com/torvalds.png" width="240" alt="GitFut card"></a>
-<a href="https://gitfut.com/ThePrimeagen"><img src="https://gitfut.com/ThePrimeagen.png" width="240" alt="GitFut card"></a>
-<a href="https://gitfut.com/t3dotgg"><img src="https://gitfut.com/t3dotgg.png" width="240" alt="GitFut card"></a>
+<a href="https://gitfut.com/torvalds"><img src="https://gitfut.com/torvalds.png" width="220" alt="GitFut card"></a>
+<a href="https://gitfut.com/ThePrimeagen"><img src="https://gitfut.com/ThePrimeagen.png" width="220" alt="GitFut card"></a>
+<a href="https://gitfut.com/t3dotgg"><img src="https://gitfut.com/t3dotgg.png" width="220" alt="GitFut card"></a>
+<a href="https://gitfut.com/Pierry"><img src="https://gitfut.com/Pierry.png" width="220" alt="GitFut card"></a>
 
 </div>
 
