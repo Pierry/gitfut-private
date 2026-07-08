@@ -90,7 +90,7 @@ const CORE_METRICS: MetricDef[] = [
   { label: METRIC_LABELS.codeReviews, unit: "reviews", ref: 400, value: (s) => s.reviews },
   { label: METRIC_LABELS.contributions, unit: "contributions", ref: 8_000, value: (s) => s.total_contributions_lifetime },
   { label: "Active days", unit: "days", ref: 260, value: (s) => s.active_days_recent },
-  { label: "Account age", unit: "yrs", ref: 10, value: (s) => Math.round(s.account_age_years) },
+  { label: "Account age", unit: "yrs", ref: 4, value: (s) => Math.round(s.account_age_years) },
   { label: METRIC_LABELS.languages, unit: "languages", ref: 8, value: (s) => s.languages },
 ];
 

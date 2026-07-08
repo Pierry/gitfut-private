@@ -51,7 +51,7 @@ function center(s: Signals): number {
       pr * Lg(s.prs_to_others) +
       review * Lg(s.reviews) +
       commit * Lg(s.recent_commits) +
-      age * s.account_age_years +
+      age * Math.min(s.account_age_years, K.ageCap) +
       activeDays * s.active_days_recent +
       b,
   );
@@ -132,7 +132,7 @@ function weightedOVR(stats: Stats, family: Family): number {
 function legacyScore(s: Signals): number {
   const { age, activeYears, contrib, activeDays, b, activeCap } = K.legacy;
   const z =
-    age * Math.log(s.account_age_years + 1) +
+    age * Math.log(Math.min(s.account_age_years, K.ageCap) + 1) +
     activeYears * Math.min(s.active_years, activeCap) +
     contrib * Lg(s.total_contributions_lifetime) +
     activeDays * (s.active_days_recent / 365) +
@@ -140,12 +140,18 @@ function legacyScore(s: Signals): number {
   return sigmoid(z);
 }
 
-function pickFinish(overall: number, L: number, recentSpike: boolean, login: string): Finish {
-  if (K.iconAllowlist.includes(login) || overall >= K.finish.iconMin) return "icon";
-  if (overall >= K.finish.totyMin && L >= K.finish.totyLegacy) return "toty";
-  if (recentSpike && overall >= K.finish.silverMin) return "totw";
-  if (overall >= K.finish.goldMin) return "gold";
-  if (overall >= K.finish.silverMin) return "silver";
+function pickFinish(overall: number, stats: Stats, s: Signals): Finish {
+  const f = K.finish;
+  if (K.iconAllowlist.includes(s.login)) return "icon";
+  // TOTY — elite across the board: every stat clears the bar.
+  if (STATS.every((k) => stats[k] > f.totyStat)) return "toty";
+  // ICON — mature + elite: a seasoned account rated at the top.
+  if (overall >= f.iconOverall && s.account_age_years >= f.iconAgeYears) return "icon";
+  // HERO — high + relentless this year.
+  if (overall >= f.heroOverall && s.active_days_recent > f.heroActiveDays) return "hero";
+  if (s.recent_spike && overall >= f.silverMin) return "totw";
+  if (overall >= f.goldMin) return "gold";
+  if (overall >= f.silverMin) return "silver";
   return "bronze";
 }
 
@@ -187,7 +193,7 @@ export function buildCard(s: Signals): Card {
   const overall = founder
     ? FOUNDER_OVERALL[s.login.toLowerCase()]
     : clamp(baseOVR + Math.round(K.legacy.bonusMax * L), 1, 99);
-  const finish: Finish = founder ? "founder" : pickFinish(overall, L, s.recent_spike, s.login);
+  const finish: Finish = founder ? "founder" : pickFinish(overall, stats, s);
   const archetype = founder
     ? { name: "Founder", blurb: "co-founder of GitFut — they built the very scout reading this card" }
     : archetypeFromShape(stats, finish);

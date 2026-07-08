@@ -2,7 +2,7 @@ export type StatKey = "pac" | "sho" | "pas" | "dri" | "def" | "phy";
 export type Stats = Record<StatKey, number>;
 export type Profile = Record<StatKey, number>;
 
-export type Finish = "bronze" | "silver" | "gold" | "totw" | "toty" | "icon" | "founder";
+export type Finish = "bronze" | "silver" | "gold" | "totw" | "hero" | "toty" | "icon" | "founder";
 export type Position = "ST" | "RW" | "CAM" | "CM" | "CDM" | "CB";
 export type Family = "Forward" | "Playmaker" | "Anchor";
 

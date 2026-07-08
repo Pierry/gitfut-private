@@ -45,6 +45,7 @@ const hideOnError: React.ReactEventHandler<HTMLImageElement> = (e) => {
 const VERDICTS: Record<Finish, string> = {
   icon: "Generational talent",
   toty: "Elite prospect",
+  hero: "Cult hero",
   totw: "In-form, in demand",
   gold: "First-team ready",
   silver: "Squad rotation",

@@ -21,8 +21,9 @@ const TIERS: { finish: Finish; label: string; overall: number }[] = [
   { finish: "silver", label: "SILVER", overall: 66 },
   { finish: "gold", label: "GOLD", overall: 78 },
   { finish: "totw", label: "IN-FORM", overall: 85 },
-  { finish: "toty", label: "TOTY", overall: 89 },
-  { finish: "icon", label: "ICON", overall: 94 },
+  { finish: "hero", label: "HERO", overall: 89 },
+  { finish: "icon", label: "ICON", overall: 93 },
+  { finish: "toty", label: "TOTY", overall: 97 },
 ];
 
 const TIER_PREVIEWS: { card: Card; label: string }[] = TIERS.map((t) => ({
@@ -189,9 +190,10 @@ export default function HowItWorksModal({ onClose }: { onClose: () => void }) {
             THE LADDER
           </div>
           <p className="m-0 mb-[18px] text-[14px] leading-[1.6] text-ink-faint">
-            Six finish tiers, bronze to icon. Your card wears the one you&apos;ve reached, read live from your GitHub.
+            The finish tiers, bronze to legend. GOLD and up is where it gets fun: HERO is 88+ and 200+ active days,
+            ICON is 90+ on a 4-year account, TOTY is every stat past 90.
           </p>
-          <div className="grid grid-cols-6 gap-[clamp(8px,1.4vw,14px)] max-[640px]:grid-cols-3 max-[380px]:grid-cols-2">
+          <div className="grid grid-cols-7 gap-[clamp(6px,1.1vw,12px)] max-[720px]:grid-cols-4 max-[420px]:grid-cols-3">
             {TIER_PREVIEWS.map(({ card, label }) => (
               <div key={label} className="flex flex-col items-center gap-[8px]">
                 <PlayerCard card={card} />

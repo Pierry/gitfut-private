@@ -39,7 +39,20 @@ export const K = {
   // §4 the 88→99 range, bought with tenure + sustained real output (no stars/followers).
   legacy: { age: 0.85, activeYears: 0.5, contrib: 0.55, activeDays: 1.4, b: -5.6, activeCap: 12, bonusMax: 12 },
   ovrCap: 90,
-  finish: { iconMin: 90, totyMin: 84, totyLegacy: 0.5, goldMin: 72, silverMin: 60 },
+  // Account age counts, but tops out fast: 4 years is already a maxed bar —
+  // anything beyond that is noise, so it's capped in the scoring.
+  ageCap: 4,
+  finish: {
+    // ICON: mature + elite. HERO: high + very active this year. TOTY: elite across
+    // the board. (bronze/silver/gold/in-form are overall-threshold tiers.)
+    iconOverall: 90,
+    iconAgeYears: 4,
+    heroOverall: 88,
+    heroActiveDays: 200,
+    totyStat: 90, // every stat must clear this
+    goldMin: 72,
+    silverMin: 60,
+  },
   iconAllowlist: ["torvalds"],
 };
 
@@ -54,6 +67,7 @@ export const FINISH_LABELS: Record<Finish, string> = {
   silver: "SILVER",
   gold: "GOLD",
   totw: "IN-FORM",
+  hero: "HERO",
   toty: "TOTY",
   icon: "ICON",
   founder: "FOUNDER",

@@ -52,6 +52,15 @@ export const CARD_THEME: Record<Finish, CardTheme> = {
     avatarTint: "radial-gradient(ellipse 72% 76% at 52% 40%, transparent 46%, rgba(74,120,210,.22) 78%, rgba(14,35,80,.46))",
     avatarHalo: "rgba(127,168,255,.45)",
   },
+  // HERO — the gold frame with a green accent (FUT Hero's signature). Swap bg for
+  // a dedicated /cards/hero.png if you add one.
+  hero: {
+    bg: "/cards/gold.png",
+    ink: "#173d24",
+    glow: "rgba(52,180,110,.55)",
+    avatarTint: "radial-gradient(ellipse 72% 76% at 52% 40%, transparent 46%, rgba(52,180,110,.22) 78%, rgba(18,66,40,.46))",
+    avatarHalo: "rgba(96,214,144,.45)",
+  },
   toty: {
     bg: "/cards/toty.webp",
     ink: "#ebcd5b",
@@ -103,6 +112,7 @@ export const RESULT_THEME: Record<Finish, ResultTheme> = {
   silver: { glow: "rgba(170,188,210,.34)", chip: "#262B33", ink: "#D6DCE6" },
   gold: { glow: "rgba(225,185,80,.4)", chip: "#3A2806", ink: "#F3D679" },
   totw: { glow: "rgba(90,140,255,.5)", chip: "#10254F", ink: "#CADBFF" },
+  hero: { glow: "rgba(52,180,110,.42)", chip: "#0E2C1C", ink: "#7EE2A6" },
   toty: { glow: "rgba(90,140,255,.5)", chip: "#10254F", ink: "#CADBFF" },
   icon: { glow: "rgba(243,213,128,.45)", chip: "#2A1A45", ink: "#F3D688" },
   founder: { glow: "rgba(255,47,69,.4)", chip: "#221016", ink: "#ff6273" },
@@ -141,6 +151,7 @@ const CONFETTI: Partial<Record<Finish, string[]>> = {
   toty: ["#e9cc74", "#d4af37", "#7fa8ff", "#ffffff", "#7ec8f2"],
   icon: ["#e9cc74", "#d4af37", "#f5f0e1", "#ffffff", "#7ec8f2"],
   totw: ["#7ec8f2", "#e9cc74", "#ffffff", "#7fa8ff"],
+  hero: ["#3cbf6e", "#7ee2a6", "#e9cc74", "#ffffff"],
 };
 
 export function confettiPalette(card: Card): string[] {
