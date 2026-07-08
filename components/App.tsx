@@ -13,6 +13,7 @@ import GithubStar from "@/components/GithubStar";
 import Collection from "@/components/Collection";
 import { SAMPLE_CARDS } from "@/lib/github/samples";
 import { scout } from "@/lib/scout";
+import { isExternalProfile } from "@/lib/github/org";
 import { getPat } from "@/lib/pat";
 import { pickFlag } from "@/lib/flagPriority";
 import { writeCardCache } from "@/hooks/useScout";
@@ -58,15 +59,26 @@ export default function App({ stars }: { stars: number | null }) {
 
   const runScout = useCallback(async (login: string, country: string | null) => {
     const token = getPat();
-    if (!token) {
-      // Private fork can't scout without a token → send them to the public site.
+    const toPublic = () => {
+      // Hand the visitor to the public site — where public scoring lives — instead
+      // of scoring them on this fork's internal scale.
       const q = country ? `?country=${encodeURIComponent(country)}` : "";
       window.location.href = `${GITFUT}/${encodeURIComponent(login)}${q}`;
+    };
+    if (!token) {
+      // Private fork can't scout without a token → send them to the public site.
+      toPublic();
       return;
     }
     setTarget(login);
     setError(null);
     setView("loading");
+    // Only score people inside your org here; outsiders go to public gitfut.com so
+    // the internal scoring never lands on a public profile.
+    if (await isExternalProfile(login, token)) {
+      toPublic();
+      return;
+    }
     try {
       const { card: fresh, signals: sig } = await scout(login, token);
       writeCardCache(fresh, true);
