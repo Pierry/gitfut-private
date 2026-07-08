@@ -37,26 +37,54 @@ function rawStats(s: Signals): Stats {
   };
 }
 
+// Each signal owns a role: commits=striker, PRs=creator, reviews=defender, etc.
+const STAT_POSITION: Record<StatKey, Position> = {
+  sho: "ST", // commits — the finisher, pure output
+  pac: "RW", // active days — the winger, always on
+  pas: "CAM", // PRs into others' code — the creative link
+  dri: "CM", // seasoning/breadth — the box-to-box generalist
+  def: "CB", // reviews — the stopper, quality gate
+  phy: "CDM", // lifetime volume — the holding workhorse
+};
+const POSITION_FAMILY: Record<Position, Family> = {
+  ST: "Forward",
+  RW: "Forward",
+  CAM: "Playmaker",
+  CM: "Playmaker",
+  CDM: "Anchor",
+  CB: "Anchor",
+};
+// How much each signal counts toward the role read. PAC (active days) saturates —
+// anyone employed shows up most days — so it's damped; the discriminating signals
+// (PRs, reviews) are amplified. Iterated in this order so it doubles as the
+// tie-break priority: collaboration/stewardship/output beat "just shows up".
+const ROLE_ORDER: StatKey[] = ["pas", "def", "sho", "dri", "phy", "pac"];
+const ROLE_WEIGHT: Record<StatKey, number> = {
+  pas: 1.3,
+  def: 1.2,
+  sho: 1.1,
+  dri: 1.0,
+  phy: 0.9,
+  pac: 0.4,
+};
+
+// Position from the player's STANDOUT signal — the stat furthest above their own
+// six-stat average (weighted). So the card reads HOW a dev contributes (ships,
+// reviews, links, guards), not merely that they log active days — which used to
+// force almost everyone to RW.
 function positionFromShape(st: Stats): { position: Position; family: Family } {
-  const fam: Record<Family, number> = {
-    Forward: st.sho + st.pac,
-    Playmaker: st.pas + st.dri,
-    Anchor: st.def + st.phy,
-  };
-  const family = (Object.keys(fam) as Family[]).sort((a, b) => fam[b] - fam[a])[0];
-  const position: Position =
-    family === "Forward"
-      ? st.pac > st.sho
-        ? "RW"
-        : "ST"
-      : family === "Playmaker"
-        ? st.pas > st.dri
-          ? "CM"
-          : "CAM"
-        : st.def > st.phy
-          ? "CB"
-          : "CDM";
-  return { position, family };
+  const mean = STATS.reduce((s, k) => s + st[k], 0) / STATS.length;
+  let best: StatKey = ROLE_ORDER[0];
+  let bestVal = -Infinity;
+  for (const k of ROLE_ORDER) {
+    const edge = (st[k] - mean) * ROLE_WEIGHT[k];
+    if (edge > bestVal) {
+      bestVal = edge;
+      best = k;
+    }
+  }
+  const position = STAT_POSITION[best];
+  return { position, family: POSITION_FAMILY[position] };
 }
 
 // §3.6 — position-weighted, never a flat mean; stats alone cap at 88.

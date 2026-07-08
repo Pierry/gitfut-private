@@ -1,4 +1,3 @@
-import { formatCount } from "../format";
 import { STATS } from "./constants";
 import type { Metric, Signals, Stats, WorkRateLevel } from "./types";
 
@@ -12,14 +11,22 @@ const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x
 const score99 = (value: number, ref: number) =>
   value <= 0 ? 0 : clamp(Math.round(99 * (Lg(value) / Lg(ref))), 1, 99);
 
-// Skill moves (1–5) = technical range: language diversity, +1 for broad output.
+// Skill moves (1–5) = technical range. Language count comes from PUBLIC repos, so
+// for private/company work it's near-useless (most work never goes public). Read
+// range instead from the SPREAD of contribution types a dev is strong in — ships
+// code, opens PRs, reviews peers, and works broadly — each mode adding a star.
 export function deriveSkillMoves(s: Signals): { value: number; reason: string } {
-  let value = s.languages >= 10 ? 5 : s.languages >= 7 ? 4 : s.languages >= 4 ? 3 : s.languages >= 2 ? 2 : 1;
-  const bonus = s.public_repos >= 40 && value < 5;
-  if (bonus) value += 1;
-  const reason = `Technical range: ${s.languages} language${s.languages === 1 ? "" : "s"}${
-    bonus ? ` across ${formatCount(s.public_repos)} repos` : ""
-  }.`;
+  const modes: [boolean, string][] = [
+    [s.recent_commits >= 150, "ships code"],
+    [s.prs_to_others >= 20, "opens PRs"],
+    [s.reviews >= 20, "reviews peers"],
+    [s.languages >= 4 || s.public_repos >= 15, "broad stack"],
+  ];
+  const met = modes.filter(([hit]) => hit).map(([, label]) => label);
+  const value = clamp(1 + met.length, 1, 5);
+  const reason = met.length
+    ? `Versatile across ${met.length} of 4 modes: ${met.join(", ")}.`
+    : "Narrow range: light on commits, PRs and reviews.";
   return { value, reason };
 }
 
