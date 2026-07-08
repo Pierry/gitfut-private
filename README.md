@@ -48,17 +48,13 @@ The six stats *are* the metric bars, 1:1. Your overall is the position-weighted 
 
 ## Finishes
 
-| Finish | Overall | Earns it |
-|:--|:--|:--|
-| BRONZE | under 60 | |
-| SILVER | 60 to 71 | |
-| GOLD | 72+ | |
-| HERO | 88+ | very active this year, gets its own teal frame |
-| TOTY | | every stat 90+ |
-| ICON | 90+ | on a 4-year-plus account |
-| FOUNDER | | bespoke art |
+<div align="center">
 
-No IN-FORM.
+<img src=".github/finishes.png" width="860" alt="The finish ladder: bronze, silver, gold, hero, icon, toty">
+
+</div>
+
+Bronze to legend. GOLD and up is where it gets fun: HERO is 88+ and very active this year (its own teal frame), ICON is 90+ on a 4-year account, TOTY is every stat past 90. Founders get bespoke art. No IN-FORM.
 
 ## Beyond the card
 
