@@ -14,18 +14,18 @@ interface PlaystyleDef {
   plus: number;
 }
 
+// Internal-work catalog: no stars/followers (meaningless on private repos). The
+// signals that count — PRs, commits, reviews, contributions, activity, tenure.
 const CATALOG: PlaystyleDef[] = [
-  { name: "Star Magnet", icon: "star", noun: "stars earned", value: (s) => s.total_stars_owned, base: 500, plus: 20_000 },
-  { name: "Viral Hit", icon: "flame", noun: "stars on one repo", value: (s) => s.max_repo_stars, base: 1_000, plus: 20_000 },
+  { name: "Connector", icon: "git-pull-request", noun: "pull requests", value: (s) => s.prs_to_others, base: 40, plus: 400 },
+  { name: "Shipper", icon: "flame", noun: "commits this year", value: (s) => s.recent_commits, base: 200, plus: 1_500 },
+  { name: "Reviewer", icon: "shield", noun: "code reviews", value: (s) => s.reviews, base: 30, plus: 300 },
   { name: "Workhorse", icon: "zap", noun: "active days this year", value: (s) => s.active_days_recent, base: 120, plus: 250 },
   { name: "Rapid Fire", icon: "fast-forward", noun: "contributions this year", value: (s) => s.recent_contributions, base: 500, plus: 2_500 },
-  { name: "Marathoner", icon: "infinity", noun: "lifetime contributions", value: (s) => s.total_contributions_lifetime, base: 3_000, plus: 25_000 },
-  { name: "Maintainer", icon: "shield", noun: "reviews & issues", value: (s) => s.reviews + s.issues_closed, base: 30, plus: 300 },
-  { name: "Connector", icon: "git-pull-request", noun: "pull requests", value: (s) => s.prs_to_others, base: 30, plus: 400 },
-  { name: "Magnetic", icon: "users", noun: "followers", value: (s) => s.followers, base: 200, plus: 20_000 },
+  { name: "Marathoner", icon: "infinity", noun: "lifetime contributions", value: (s) => s.total_contributions_lifetime, base: 2_000, plus: 15_000 },
   { name: "Polyglot", icon: "languages", noun: "languages", value: (s) => s.languages, base: 5, plus: 9 },
-  { name: "Prolific", icon: "folder-git", noun: "public repos", value: (s) => s.public_repos, base: 30, plus: 150 },
-  { name: "Veteran", icon: "clock", noun: "years on GitHub", value: (s) => s.account_age_years, base: 5, plus: 12 },
+  { name: "Prolific", icon: "folder-git", noun: "repositories", value: (s) => s.public_repos, base: 20, plus: 100 },
+  { name: "Veteran", icon: "clock", noun: "years on GitHub", value: (s) => s.account_age_years, base: 4, plus: 10 },
 ];
 
 const MAX_SHOWN = 8;

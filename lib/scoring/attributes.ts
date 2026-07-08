@@ -41,7 +41,7 @@ export function deriveWorkRate(stats: Stats): { attack: WorkRateLevel; defense: 
   return {
     attack,
     defense,
-    reason: `Attack ${attack} from shipping output (commits, stars); defense ${defense} from reviews & issues.`,
+    reason: `Attack ${attack} from shipping output (commits, PRs); defense ${defense} from code reviews.`,
   };
 }
 
@@ -52,8 +52,8 @@ export function deriveStyle(s: Signals): { value: string; reason: string } {
     return { value: "Relentless", reason: "Active on most days, all year round." };
   if (s.account_age_years >= 6 && s.active_years >= 5)
     return { value: "Controlled", reason: "A long, steady track record." };
-  if (s.max_repo_stars >= 5000 && s.recent_contributions < 200)
-    return { value: "Clinical", reason: "One big hit, quiet lately." };
+  if (s.prs_to_others >= 150 && s.reviews >= 80)
+    return { value: "Collaborative", reason: "Deep in the team's PRs and reviews." };
   if (s.recent_contributions >= 300) return { value: "Industrious", reason: "Steadily active this year." };
   return { value: "Measured", reason: "Light recent activity." };
 }
@@ -80,26 +80,25 @@ export const METRIC_LABELS = {
   contributions: "Contributions",
 } as const;
 
-// Core metrics — always shown (a few zeros are fine).
+// Core metrics — the ones that actually count for internal work, most-valued
+// first. Stars, top-repo reach, followers and issues are dropped: they mean
+// nothing on private company repos. References are on a company scale (not the
+// open-source-megastar scale), so real internal output reads as a full bar.
 const CORE_METRICS: MetricDef[] = [
-  { label: METRIC_LABELS.commits, unit: "commits", ref: 3_000, value: (s) => s.recent_commits },
-  { label: METRIC_LABELS.starsEarned, unit: "stars", ref: 200_000, value: (s) => s.total_stars_owned },
-  { label: METRIC_LABELS.topRepoReach, unit: "stars", ref: 150_000, value: (s) => s.max_repo_stars },
-  { label: METRIC_LABELS.pullRequests, unit: "PRs", ref: 2_000, value: (s) => s.prs_to_others },
-  { label: METRIC_LABELS.followers, unit: "followers", ref: 100_000, value: (s) => s.followers },
-  { label: METRIC_LABELS.languages, unit: "languages", ref: 15, value: (s) => s.languages },
-  { label: METRIC_LABELS.issues, unit: "issues", ref: 1_500, value: (s) => s.issues_closed },
-  { label: METRIC_LABELS.codeReviews, unit: "reviews", ref: 2_000, value: (s) => s.reviews },
-  { label: METRIC_LABELS.contributions, unit: "contributions", ref: 50_000, value: (s) => s.total_contributions_lifetime },
+  { label: METRIC_LABELS.pullRequests, unit: "PRs", ref: 600, value: (s) => s.prs_to_others },
+  { label: METRIC_LABELS.commits, unit: "commits", ref: 1_500, value: (s) => s.recent_commits },
+  { label: METRIC_LABELS.codeReviews, unit: "reviews", ref: 400, value: (s) => s.reviews },
+  { label: METRIC_LABELS.contributions, unit: "contributions", ref: 8_000, value: (s) => s.total_contributions_lifetime },
+  { label: "Active days", unit: "days", ref: 260, value: (s) => s.active_days_recent },
+  { label: "Account age", unit: "yrs", ref: 10, value: (s) => Math.round(s.account_age_years) },
+  { label: METRIC_LABELS.languages, unit: "languages", ref: 8, value: (s) => s.languages },
 ];
 
 // Optional metrics — appended only to make up for zeroed core ones (see below).
 // Display-only, like the core metrics: they don't feed playstyles or attributes.
 const OPTIONAL_METRICS: MetricDef[] = [
-  { label: "Account age", unit: "yrs", ref: 15, value: (s) => Math.round(s.account_age_years) },
-  { label: "Active days", unit: "days", ref: 365, value: (s) => s.active_days_recent },
-  { label: "Repositories", unit: "repos", ref: 200, value: (s) => s.public_repos },
-  { label: "Active years", unit: "yrs", ref: 15, value: (s) => s.active_years },
+  { label: "Repositories", unit: "repos", ref: 60, value: (s) => s.public_repos },
+  { label: "Active years", unit: "yrs", ref: 10, value: (s) => s.active_years },
 ];
 
 const toMetric = (def: MetricDef, s: Signals): Metric => {

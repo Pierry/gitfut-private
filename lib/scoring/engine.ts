@@ -22,32 +22,37 @@ const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x
 const mean = (a: number[]) => a.reduce((s, x) => s + x, 0) / a.length;
 const vals = (s: Profile) => STATS.map((k) => s[k]);
 
-// §2 — raw estimates, tuned so the six land on a comparable scale.
+// §2 — raw estimates from company-internal signals (no stars/followers/issues).
 function rawStats(s: Signals): Stats {
   const o: Stats = {
-    pac: 36 + 12 * Lg(s.recent_contributions),
-    sho: 36 + 13 * Lg(s.total_stars_owned) + 5 * Lg(s.max_repo_stars),
-    pas: 40 + 12 * Lg(s.prs_to_others) + 9 * Lg(s.followers),
-    // DRI = genuine range, square-root scaled so breadth has diminishing returns:
-    // ~65 at one language, ~80 at ten, ~85 at fifteen. The old linear count
-    // saturated (8 languages already ~94, maxed at 9), letting a noisy signal own
-    // the card and crown every polyglot a Fantasista.
-    dri: 58 + 7 * Math.sqrt(s.languages),
-    def: 40 + 14 * Lg(s.reviews + s.issues_closed),
-    phy: 40 + 9 * Lg(s.total_contributions_lifetime) + 2.2 * Math.min(s.active_years, 12),
+    // PACE — tempo: this year's contributions + how many days they showed up.
+    pac: 30 + 11 * Lg(s.recent_contributions) + 0.04 * s.active_days_recent,
+    // SHOOTING — output: commits shipped.
+    sho: 34 + 14 * Lg(s.recent_commits),
+    // PASSING — collaboration: pull requests into others' code. The top signal.
+    pas: 34 + 15 * Lg(s.prs_to_others),
+    // DRIBBLING — range: languages, square-root scaled (diminishing returns).
+    dri: 54 + 8 * Math.sqrt(s.languages),
+    // DEFENDING — stewardship: code reviews (issues dropped, barely used internally).
+    def: 36 + 14 * Lg(s.reviews),
+    // PHYSICAL — durability: a lifetime of contributions over the years on the clock.
+    phy: 30 + 10 * Lg(s.total_contributions_lifetime) + 3 * Math.min(s.active_years, 12),
   };
   for (const k of STATS) o[k] = clamp(Math.round(o[k]), 1, 99);
   return o;
 }
 
-// §3.1 — magnitude → gravity-well center the stats sit around.
+// §3.1 — magnitude → gravity-well center the stats sit around. Internal signals:
+// contributions, PRs, reviews, commits, tenure and active days (no stars/followers).
 function center(s: Signals): number {
-  const { w1, w2, w3, w4, b, lo, hi } = K.magnitude;
+  const { contrib, pr, review, commit, age, activeDays, b, lo, hi } = K.magnitude;
   const M = sigmoid(
-    w1 * Lg(s.total_stars_owned) +
-      w2 * Lg(s.followers) +
-      w3 * Lg(s.total_contributions_lifetime) +
-      w4 * s.account_age_years +
+    contrib * Lg(s.total_contributions_lifetime) +
+      pr * Lg(s.prs_to_others) +
+      review * Lg(s.reviews) +
+      commit * Lg(s.recent_commits) +
+      age * s.account_age_years +
+      activeDays * s.active_days_recent +
       b,
   );
   return lerp(lo, hi, M);
@@ -122,16 +127,16 @@ function weightedOVR(stats: Stats, family: Family): number {
   return Math.min(Math.round(ovr), K.ovrCap);
 }
 
-// §4 — the 88→99 range is bought with years and sustained influence.
+// §4 — the top range is bought with tenure + sustained real output: account age,
+// active years, lifetime contributions and how many days a year they ship.
 function legacyScore(s: Signals): number {
-  const { a, b, c, d, e, f, activeCap } = K.legacy;
+  const { age, activeYears, contrib, activeDays, b, activeCap } = K.legacy;
   const z =
-    a * Math.log(s.account_age_years + 1) +
-    b * Math.min(s.active_years, activeCap) +
-    c * Lg(s.followers) +
-    d * Lg(s.total_stars_owned) +
-    e * Lg(s.max_repo_stars) -
-    f;
+    age * Math.log(s.account_age_years + 1) +
+    activeYears * Math.min(s.active_years, activeCap) +
+    contrib * Lg(s.total_contributions_lifetime) +
+    activeDays * (s.active_days_recent / 365) +
+    b;
   return sigmoid(z);
 }
 

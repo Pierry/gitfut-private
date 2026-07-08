@@ -19,8 +19,14 @@ export const STAT_LABELS: Record<StatKey, string> = {
 // explains those (attackers are simply poor defenders), so they may break away.
 export const ATTACK_STATS: StatKey[] = ["pac", "sho", "pas", "dri"];
 
+// Calibrated for PRIVATE, company-internal work: stars, followers and issues are
+// meaningless there (nobody stars internal repos, nobody follows colleagues, few
+// teams use GitHub issues), so they're dropped from scoring entirely. What counts
+// is real contribution: pull requests (the highest signal), commits, code
+// reviews, lifetime contributions, account age and active days.
 export const K = {
-  magnitude: { w1: 0.5, w2: 0.4, w3: 0.5, w4: 0.08, b: -2.6, lo: 57, hi: 82 },
+  // §3.1 magnitude → where the card's stats gravitate. Internal signals only.
+  magnitude: { contrib: 0.5, pr: 0.5, review: 0.34, commit: 0.34, age: 0.08, activeDays: 0.004, b: -3.7, lo: 50, hi: 86 },
   tension: {
     alpha: 0.7,
     pairs: [
@@ -30,9 +36,10 @@ export const K = {
     ] as [StatKey, StatKey][],
   },
   spike: { base: 8, cohesion: 0.6 },
-  legacy: { a: 1.0, b: 0.7, c: 0.3, d: 0.3, e: 0.3, f: 6.0, activeCap: 15, bonusMax: 11 },
-  ovrCap: 88,
-  finish: { iconMin: 92, totyMin: 85, totyLegacy: 0.5, goldMin: 72, silverMin: 60 },
+  // §4 the 88→99 range, bought with tenure + sustained real output (no stars/followers).
+  legacy: { age: 0.85, activeYears: 0.5, contrib: 0.55, activeDays: 1.4, b: -5.6, activeCap: 12, bonusMax: 12 },
+  ovrCap: 90,
+  finish: { iconMin: 90, totyMin: 84, totyLegacy: 0.5, goldMin: 72, silverMin: 60 },
   iconAllowlist: ["torvalds"],
 };
 

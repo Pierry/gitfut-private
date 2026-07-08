@@ -17,10 +17,10 @@ const SILHOUETTE =
 // frame's actual layout. Built off a real sample (for the full Card shape), with
 // the finish/overall/name overridden and the identity blanked to a silhouette.
 const TIERS: { finish: Finish; label: string; overall: number }[] = [
-  { finish: "bronze", label: "BRONZE", overall: 61 },
-  { finish: "silver", label: "SILVER", overall: 72 },
-  { finish: "gold", label: "GOLD", overall: 80 },
-  { finish: "totw", label: "IN-FORM", overall: 84 },
+  { finish: "bronze", label: "BRONZE", overall: 55 },
+  { finish: "silver", label: "SILVER", overall: 66 },
+  { finish: "gold", label: "GOLD", overall: 78 },
+  { finish: "totw", label: "IN-FORM", overall: 85 },
   { finish: "toty", label: "TOTY", overall: 89 },
   { finish: "icon", label: "ICON", overall: 94 },
 ];
@@ -46,12 +46,12 @@ const TIER_PREVIEWS: { card: Card; label: string }[] = TIERS.map((t) => ({
 // The six GitHub signals behind each stat — accurate to the engine (PACE is a
 // year of ALL contribution types, not just commits).
 const READS = [
-  { abbr: "PAC", gloss: "A year of commits, PRs, reviews & issues" },
-  { abbr: "SHO", gloss: "Stars earned, and your biggest single hit" },
-  { abbr: "PAS", gloss: "PRs into other people's repos, plus followers" },
+  { abbr: "PAC", gloss: "This year's activity: contributions and days you showed up" },
+  { abbr: "SHO", gloss: "Commits shipped" },
+  { abbr: "PAS", gloss: "Pull requests into your team's code, the signal that counts most" },
   { abbr: "DRI", gloss: "Your language range: broad helps, but the 10th counts for less" },
-  { abbr: "DEF", gloss: "Code reviews and issues closed" },
-  { abbr: "PHY", gloss: "A lifetime of contributions over your active years" },
+  { abbr: "DEF", gloss: "Code reviews" },
+  { abbr: "PHY", gloss: "A lifetime of contributions over your years on the clock" },
 ];
 
 // How the scout reads you — the three things that make a card a fingerprint
