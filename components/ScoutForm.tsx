@@ -120,37 +120,48 @@ export default function ScoutForm({
         </div>
       )}
 
-      <div className="mt-[14px] text-[13px] text-ink-mute">
-        no token?{" "}
-        <a
-          href="https://gitfut.com"
-          target="_blank"
-          rel="noopener"
-          className="inline-flex items-center gap-[4px] font-medium text-ink-soft underline decoration-brand/40 underline-offset-[3px] transition hover:text-brand"
-        >
-          see public cards on gitfut.com
-          <ArrowRight size={13} strokeWidth={2.6} className="relative top-px" />
-        </a>
-      </div>
+      {/* No token: an explicit two-way choice — paste a token to scout privately
+          here, or go public on the original gitfut.com. With a token saved, show
+          the status plus a way to replace it. */}
+      {!patSaved ? (
+        <div className="mt-[18px] flex flex-wrap items-center gap-[10px] max-w-[460px] max-[860px]:justify-center">
+          <button
+            type="button"
+            onClick={() => setPatOpen(true)}
+            className="inline-flex items-center gap-[8px] rounded-[12px] border border-brand/45 bg-brand/[0.12] px-[16px] py-[11px] text-[13.5px] font-semibold text-brand transition hover:bg-brand/[0.18]"
+          >
+            <Lock size={14} strokeWidth={2.4} />
+            Use my token for private
+          </button>
+          <a
+            href="https://gitfut.com"
+            target="_blank"
+            rel="noopener"
+            className="inline-flex items-center gap-[7px] rounded-[12px] border border-line bg-surface/50 px-[16px] py-[11px] text-[13.5px] font-semibold text-ink-soft transition hover:border-ink-mute hover:text-ink"
+          >
+            See public on gitfut.com
+            <ArrowRight size={14} strokeWidth={2.6} />
+          </a>
+        </div>
+      ) : (
+        <div className="mt-[18px] flex flex-wrap items-center gap-[12px] max-w-[460px] max-[860px]:justify-center">
+          <span className="inline-flex items-center gap-[7px] text-[13px] font-semibold text-brand">
+            <Check size={14} strokeWidth={2.6} /> private scouting on
+          </span>
+          <button
+            type="button"
+            onClick={() => setPatOpen((o) => !o)}
+            className="text-[12.5px] font-semibold text-ink-mute underline-offset-2 transition hover:text-ink hover:underline"
+          >
+            replace token
+          </button>
+        </div>
+      )}
 
-      {/* private scouting — paste your own GitHub token, kept only in this
-          browser, to score a colleague's PRIVATE contributions (shared org). */}
-      <div className="mt-[16px] max-w-[460px] max-[860px]:mx-auto">
-        <button
-          type="button"
-          onClick={() => setPatOpen((o) => !o)}
-          className="inline-flex items-center gap-[7px] text-[12.5px] font-semibold text-ink-soft transition hover:text-brand"
-        >
-          {patSaved ? (
-            <Check size={14} strokeWidth={2.6} className="text-brand" />
-          ) : (
-            <Lock size={13} strokeWidth={2.4} />
-          )}
-          {patSaved ? "private scouting on" : "include private repos"}
-        </button>
-
+      {/* the token paste panel, opened by the button above */}
+      <div className="max-w-[460px] max-[860px]:mx-auto">
         {patOpen && (
-          <div className="mt-[10px] rounded-[12px] border border-line bg-surface/60 p-[14px] backdrop-blur-[4px]">
+          <div className="mt-[12px] rounded-[12px] border border-line bg-surface/60 p-[14px] backdrop-blur-[4px]">
             <p className="mb-[10px] text-[12.5px] leading-[1.5] text-ink-dim">
               Paste a GitHub token to count the private contributions you can
               already see (e.g. teammates in a shared org). It&apos;s saved only in
