@@ -4,49 +4,50 @@
 // the public scoring lives — so we don't accidentally rate an outsider on the
 // internal scale.
 //
-// "Internal" = the scouted user is a member of an organization the TOKEN OWNER
-// also belongs to (a teammate). No org is hard-coded: we read the viewer's own
-// orgs from their token, then check membership. All calls are client-side with
-// the viewer's PAT (read:org), same as the scout itself.
+// "Internal" = the scouted user shares an organization with the TOKEN OWNER (a
+// teammate), or IS the token owner. No org is hard-coded: we read the viewer's
+// own orgs and the target's orgs from the same GraphQL endpoint the scout uses
+// (CORS-friendly, one request), and intersect them. All client-side, viewer's PAT.
 
-const API = "https://api.github.com";
+const ENDPOINT = "https://api.github.com/graphql";
 
-const authHeaders = (token: string) => ({
-  Authorization: `Bearer ${token}`,
-  Accept: "application/vnd.github+json",
-  "X-GitHub-Api-Version": "2022-11-28",
-});
-
-// The token owner's organizations (includes private memberships with read:org).
-async function viewerOrgs(token: string): Promise<string[]> {
-  const res = await fetch(`${API}/user/orgs?per_page=100`, { headers: authHeaders(token) });
-  if (!res.ok) throw new Error(`orgs ${res.status}`);
-  const orgs = (await res.json()) as { login: string }[];
-  return orgs.map((o) => o.login).filter(Boolean);
+interface OrgNode {
+  login: string;
+  organizations: { nodes: { login: string }[] };
 }
 
-// Is `username` a member of `org`? 204 = member (incl. private members, since the
-// viewer is a member of the org we're asking about); 404 = not. `redirect:manual`
-// so the "requester isn't a member" 302 can't be silently followed into a member
-// listing — we treat anything but 204 as "not a member".
-async function isMemberOf(org: string, username: string, token: string): Promise<boolean> {
-  const res = await fetch(`${API}/orgs/${encodeURIComponent(org)}/members/${encodeURIComponent(username)}`, {
-    headers: authHeaders(token),
-    redirect: "manual",
-  });
-  return res.status === 204;
-}
+const orgs = (n: { organizations: { nodes: { login: string }[] } } | null) =>
+  new Set((n?.organizations.nodes ?? []).map((o) => o.login).filter(Boolean));
 
 // True ONLY when we've CONFIRMED the user is outside every org the viewer belongs
 // to — the case where they should be handed to public gitfut.com. Anything
-// uncertain (viewer has no orgs, or the API errors) returns false so a real
-// teammate is never bounced to the public site on a hiccup.
+// uncertain (viewer has no orgs, user not found, or the API errors) returns false
+// so a real teammate is never bounced to the public site on a hiccup.
 export async function isExternalProfile(username: string, token: string): Promise<boolean> {
+  const login = username.trim().replace(/^@/, "");
+  const query = `
+    query($login: String!) {
+      viewer { login organizations(first: 100) { nodes { login } } }
+      user(login: $login) { login organizations(first: 100) { nodes { login } } }
+    }`;
   try {
-    const orgs = await viewerOrgs(token);
-    if (orgs.length === 0) return false; // no org context to judge against
-    const memberships = await Promise.all(orgs.map((o) => isMemberOf(o, username, token)));
-    return !memberships.some(Boolean);
+    const res = await fetch(ENDPOINT, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ query, variables: { login } }),
+    });
+    if (!res.ok) return false; // uncertain → let the scout proceed
+    const body = (await res.json()) as { data?: { viewer: OrgNode; user: OrgNode | null } };
+    const viewer = body.data?.viewer;
+    const user = body.data?.user;
+    if (!viewer || !user) return false; // no data / user not found → don't misroute
+    if (user.login.toLowerCase() === viewer.login.toLowerCase()) return false; // scouting yourself
+
+    const mine = orgs(viewer);
+    if (mine.size === 0) return false; // no org context to judge against
+    const theirs = orgs(user);
+    for (const o of theirs) if (mine.has(o)) return false; // shared org → internal
+    return true; // confirmed: no org in common
   } catch {
     return false; // uncertain → let the scout proceed rather than misroute a teammate
   }
