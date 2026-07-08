@@ -1,5 +1,5 @@
 import { buildCard } from "@/lib/scoring/engine";
-import type { Card, Signals } from "@/lib/scoring/types";
+import type { Card, Family, Position, Signals, Stats } from "@/lib/scoring/types";
 
 // Home-fan showcase: REAL GitHub accounts, so every card resolves to a live
 // scout when clicked (no 404s). Signals were captured once and baked here to keep
@@ -133,5 +133,47 @@ const RAW: Signals[] = [
   },
 ];
 
-export const SAMPLE_CARDS: Card[] = RAW.map(buildCard);
+// The home fan is a curated *showcase* — its faces are frozen to the ORIGINAL
+// gitfut scoring (the public gitfut.com card each account really got), NOT this
+// fork's company-internal engine. The fork's engine still powers every LIVE
+// scout: click a card and it re-fetches + re-scores through buildCard as usual.
+// Only these five hero cards are pinned, purely so the landing looks right.
+// Each override carries the exact original overall/stats/position/finish; the
+// non-visual bits (report, avatar, flag, language logo) still come from buildCard.
+type Face = Pick<
+  Card,
+  "overall" | "baseOVR" | "stats" | "position" | "family" | "finish" | "finishLabel" | "club" | "archetype" | "archetypeBlurb"
+> & { legacyL: number };
+
+const st = (pac: number, sho: number, pas: number, dri: number, def: number, phy: number): Stats => ({
+  pac, sho, pas, dri, def, phy,
+});
+
+const GALACTICO = "hall-of-fame maintainer — high and balanced, earned over years";
+const icon = (
+  overall: number, baseOVR: number, position: Position, family: Family, stats: Stats, legacyL: number,
+): Face => ({
+  overall, baseOVR, stats, position, family, legacyL,
+  finish: "icon", finishLabel: "ICON", club: "legends", archetype: "Galáctico", archetypeBlurb: GALACTICO,
+});
+
+const ORIGINAL_FACES: Record<string, Face> = {
+  torvalds: icon(96, 85, "ST", "Forward", st(82, 92, 87, 77, 58, 95), 0.9985579118727923),
+  ThePrimeagen: icon(94, 83, "CM", "Playmaker", st(78, 91, 87, 83, 56, 94), 0.9995152017727212),
+  "pewdiepie-archdaemon": {
+    overall: 86, baseOVR: 82, stats: st(77, 95, 91, 75, 75, 69), position: "ST", family: "Forward",
+    finish: "gold", finishLabel: "GOLD", club: "neutral", legacyL: 0.40038971257948724,
+    archetype: "Poacher", archetypeBlurb: "one viral repo, clinical — a pure star-magnet finisher",
+  },
+  t3dotgg: icon(95, 84, "CM", "Playmaker", st(77, 90, 90, 81, 58, 93), 0.9998209672510281),
+  Pierry: icon(90, 79, "CM", "Playmaker", st(76, 83, 82, 80, 50, 96), 0.9992525081604796),
+};
+
+export const SAMPLE_CARDS: Card[] = RAW.map((raw) => {
+  const card = buildCard(raw);
+  const face = ORIGINAL_FACES[raw.login];
+  if (!face) return card;
+  const { legacyL, ...rest } = face;
+  return { ...card, ...rest, legacy: { L: legacyL } };
+});
 export const SAMPLE_LOGINS = RAW.map((r) => r.login);
