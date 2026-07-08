@@ -94,7 +94,7 @@ function PlayerCard({ card }: { card: Card }) {
 
   return (
     <div className="gitfut-card-frame" style={wrap}>
-      {/* tier background art */}
+      {/* tier background art (bgFilter recolors it per-tier, e.g. HERO → teal) */}
       <img
         src={bg}
         alt=""
@@ -105,6 +105,7 @@ function PlayerCard({ card }: { card: Card }) {
           width: "100%",
           height: "100%",
           objectFit: "fill",
+          filter: t.bgFilter,
         }}
       />
 

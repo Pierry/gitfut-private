@@ -20,7 +20,6 @@ const TIERS: { finish: Finish; label: string; overall: number }[] = [
   { finish: "bronze", label: "BRONZE", overall: 55 },
   { finish: "silver", label: "SILVER", overall: 66 },
   { finish: "gold", label: "GOLD", overall: 78 },
-  { finish: "totw", label: "IN-FORM", overall: 85 },
   { finish: "hero", label: "HERO", overall: 89 },
   { finish: "icon", label: "ICON", overall: 93 },
   { finish: "toty", label: "TOTY", overall: 97 },
@@ -193,7 +192,7 @@ export default function HowItWorksModal({ onClose }: { onClose: () => void }) {
             The finish tiers, bronze to legend. GOLD and up is where it gets fun: HERO is 88+ and 200+ active days,
             ICON is 90+ on a 4-year account, TOTY is every stat past 90.
           </p>
-          <div className="grid grid-cols-7 gap-[clamp(6px,1.1vw,12px)] max-[720px]:grid-cols-4 max-[420px]:grid-cols-3">
+          <div className="grid grid-cols-6 gap-[clamp(7px,1.2vw,13px)] max-[640px]:grid-cols-3 max-[380px]:grid-cols-2">
             {TIER_PREVIEWS.map(({ card, label }) => (
               <div key={label} className="flex flex-col items-center gap-[8px]">
                 <PlayerCard card={card} />

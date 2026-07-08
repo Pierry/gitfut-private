@@ -149,7 +149,6 @@ function pickFinish(overall: number, stats: Stats, s: Signals): Finish {
   if (overall >= f.iconOverall && s.account_age_years >= f.iconAgeYears) return "icon";
   // HERO — high + relentless this year.
   if (overall >= f.heroOverall && s.active_days_recent > f.heroActiveDays) return "hero";
-  if (s.recent_spike && overall >= f.silverMin) return "totw";
   if (overall >= f.goldMin) return "gold";
   if (overall >= f.silverMin) return "silver";
   return "bronze";

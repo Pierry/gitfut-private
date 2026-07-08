@@ -21,6 +21,9 @@ export interface CardTheme {
   glow: string;
   avatarTint: string;
   avatarHalo: string;
+  /** Optional CSS filter applied to the frame art only (not the avatar), so a
+   *  tier can recolor an existing frame — HERO shifts the gold frame to teal. */
+  bgFilter?: string;
 }
 
 export const CARD_THEME: Record<Finish, CardTheme> = {
@@ -52,13 +55,15 @@ export const CARD_THEME: Record<Finish, CardTheme> = {
     avatarTint: "radial-gradient(ellipse 72% 76% at 52% 40%, transparent 46%, rgba(74,120,210,.22) 78%, rgba(14,35,80,.46))",
     avatarHalo: "rgba(127,168,255,.45)",
   },
-  // HERO — the gold frame with a green accent (FUT Hero's signature). Swap bg for
-  // a dedicated /cards/hero.png if you add one.
+  // HERO — its own teal/green look (FUT Hero's signature), made by hue-shifting
+  // the gold frame to teal so it reads clearly distinct, not gold. Swap bg for a
+  // dedicated /cards/hero.png (and drop bgFilter) if you add one.
   hero: {
     bg: "/cards/gold.png",
-    ink: "#173d24",
+    bgFilter: "hue-rotate(122deg) saturate(1.15)",
+    ink: "#0f3a2c",
     glow: "rgba(52,180,110,.55)",
-    avatarTint: "radial-gradient(ellipse 72% 76% at 52% 40%, transparent 46%, rgba(52,180,110,.22) 78%, rgba(18,66,40,.46))",
+    avatarTint: "radial-gradient(ellipse 72% 76% at 52% 40%, transparent 46%, rgba(40,150,110,.22) 78%, rgba(14,58,44,.46))",
     avatarHalo: "rgba(96,214,144,.45)",
   },
   toty: {
