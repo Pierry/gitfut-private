@@ -70,10 +70,12 @@ export default function ScoutForm({
         </span>
       </div>
 
-      <h1 className="font-display m-0 mb-3 text-[clamp(52px,7vw,104px)] leading-[.82] tracking-[.005em]">
-        GET <span className="text-brand">PRIVATELY</span> SCOUTED
-        <span className="text-brand">.</span>
+      <h1 className="font-display m-0 mb-2 text-[clamp(52px,7vw,104px)] leading-[.82] tracking-[.005em]">
+        GET SCOUTED<span className="text-brand">.</span>
       </h1>
+      <p className="font-display m-0 mb-3 text-[clamp(15px,1.8vw,20px)] uppercase tracking-[.12em] text-brand">
+        private repos included
+      </p>
       <p className="mb-[26px] max-w-[440px] text-[clamp(15px,1.7vw,18px)] font-medium leading-[1.5] text-ink-dim max-[860px]:mx-auto">
         Your GitHub stats, private contributions you can see included, turned
         into a World-Cup-style player card rated out of 99.
