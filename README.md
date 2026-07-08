@@ -46,14 +46,28 @@ Internal repos don't have stars, followers or open issues that mean anything, so
 
 The six stats *are* the metric bars, 1:1. Your overall is the position-weighted average of them. Position and archetype come from the shape of the stats: a shooting spike is a poacher, a passing-and-dribbling lean is a deep playmaker.
 
-Finishes: BRONZE (<60), SILVER (60-71), GOLD (72+), HERO (high overall and very active this year, gets its own teal frame), TOTY (every stat 90+), ICON (90+ on a 4-year-plus account), FOUNDER (bespoke art). No IN-FORM.
+## Finishes
+
+<div align="center">
+
+![Bronze](https://img.shields.io/badge/BRONZE-%3C60-CD7F32?style=for-the-badge&labelColor=2A1A0C)
+![Silver](https://img.shields.io/badge/SILVER-60--71-AAB2BD?style=for-the-badge&labelColor=262B33)
+![Gold](https://img.shields.io/badge/GOLD-72%2B-E6B422?style=for-the-badge&labelColor=3A2806)
+![Hero](https://img.shields.io/badge/HERO-active-1CC3B2?style=for-the-badge&labelColor=05302C)
+![TOTY](https://img.shields.io/badge/TOTY-all%2090%2B-3B7AFF?style=for-the-badge&labelColor=10254F)
+![Icon](https://img.shields.io/badge/ICON-90%2B%20%C2%B7%204y-F3D688?style=for-the-badge&labelColor=2A1A45)
+![Founder](https://img.shields.io/badge/FOUNDER-bespoke-FF2F45?style=for-the-badge&labelColor=3A0A10)
+
+</div>
+
+HERO gets its own teal frame (high overall and very active this year). TOTY is every stat 90+. ICON is a 90+ on a 4-year-plus account. Founders get bespoke art. No IN-FORM.
 
 ## Beyond the card
 
-- **Collection** — every card you scout is kept in a browser-only binder (newest 40), so the home shows your squad without refetching.
-- **Share links** — the URL carries the card (raw signals, gzipped), so a link opens the exact card you made even for someone with no token and no server to look it up on. Plus one-tap brag text for X, LinkedIn, WhatsApp.
-- **Duel** — two cards head-to-head: stat shootout, radar overlay, dominance tally.
-- **PNG export** — download or copy the card as an image (the watermark only shows up in the export).
+- **Collection**: every card you scout is kept in a browser-only binder (newest 40), so the home shows your squad without refetching.
+- **Share links**: the URL carries the card (raw signals, gzipped), so a link opens the exact card you made even for someone with no token and no server to look it up on. Plus one-tap brag text for X, LinkedIn, WhatsApp.
+- **Duel**: two cards head-to-head, with a stat shootout, radar overlay and dominance tally.
+- **PNG export**: download or copy the card as an image (the watermark only shows up in the export).
 
 <br/>
 
