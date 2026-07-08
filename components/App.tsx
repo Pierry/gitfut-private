@@ -61,9 +61,11 @@ export default function App({ stars }: { stars: number | null }) {
     const token = getPat();
     const toPublic = () => {
       // Hand the visitor to the public site — where public scoring lives — instead
-      // of scoring them on this fork's internal scale.
+      // of scoring them on this fork's internal scale. REPLACE (not assign) so the
+      // outsider's `?u=` entry doesn't linger in history and re-trigger this
+      // redirect the moment the user hits Back.
       const q = country ? `?country=${encodeURIComponent(country)}` : "";
-      window.location.href = `${GITFUT}/${encodeURIComponent(login)}${q}`;
+      window.location.replace(`${GITFUT}/${encodeURIComponent(login)}${q}`);
     };
     if (!token) {
       // Private fork can't scout without a token → send them to the public site.
@@ -130,7 +132,18 @@ export default function App({ stars }: { stars: number | null }) {
     };
     sync();
     window.addEventListener("popstate", sync);
-    return () => window.removeEventListener("popstate", sync);
+    // Back-forward cache: navigating away (e.g. redirected to the public site) and
+    // hitting Back can restore this page frozen mid-scout — a loading screen that
+    // never resolves because its in-flight fetch was killed. Re-sync on a restored
+    // pageshow so the view rebuilds from the URL instead of hanging.
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) sync();
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => {
+      window.removeEventListener("popstate", sync);
+      window.removeEventListener("pageshow", onPageShow);
+    };
   }, [runScout, openShared]);
 
   const handleScout = (name: string) => {

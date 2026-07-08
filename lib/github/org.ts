@@ -30,11 +30,16 @@ export async function isExternalProfile(username: string, token: string): Promis
       viewer { login organizations(first: 100) { nodes { login } } }
       user(login: $login) { login organizations(first: 100) { nodes { login } } }
     }`;
+  // Cap the gate so a hung request can never freeze the loading screen — on
+  // timeout we abort and fall through to a normal scout.
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 6_000);
   try {
     const res = await fetch(ENDPOINT, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ query, variables: { login } }),
+      signal: ctrl.signal,
     });
     if (!res.ok) return false; // uncertain → let the scout proceed
     const body = (await res.json()) as { data?: { viewer: OrgNode; user: OrgNode | null } };
@@ -49,6 +54,8 @@ export async function isExternalProfile(username: string, token: string): Promis
     for (const o of theirs) if (mine.has(o)) return false; // shared org → internal
     return true; // confirmed: no org in common
   } catch {
-    return false; // uncertain → let the scout proceed rather than misroute a teammate
+    return false; // uncertain (incl. timeout) → let the scout proceed rather than misroute a teammate
+  } finally {
+    clearTimeout(timer);
   }
 }
