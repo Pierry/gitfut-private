@@ -48,19 +48,17 @@ The six stats *are* the metric bars, 1:1. Your overall is the position-weighted 
 
 ## Finishes
 
-<div align="center">
+| Finish | Overall | Earns it |
+|:--|:--|:--|
+| BRONZE | under 60 | |
+| SILVER | 60 to 71 | |
+| GOLD | 72+ | |
+| HERO | 88+ | very active this year, gets its own teal frame |
+| TOTY | | every stat 90+ |
+| ICON | 90+ | on a 4-year-plus account |
+| FOUNDER | | bespoke art |
 
-![Bronze](https://img.shields.io/badge/BRONZE-%3C60-CD7F32?style=for-the-badge&labelColor=2A1A0C)
-![Silver](https://img.shields.io/badge/SILVER-60--71-AAB2BD?style=for-the-badge&labelColor=262B33)
-![Gold](https://img.shields.io/badge/GOLD-72%2B-E6B422?style=for-the-badge&labelColor=3A2806)
-![Hero](https://img.shields.io/badge/HERO-active-1CC3B2?style=for-the-badge&labelColor=05302C)
-![TOTY](https://img.shields.io/badge/TOTY-all%2090%2B-3B7AFF?style=for-the-badge&labelColor=10254F)
-![Icon](https://img.shields.io/badge/ICON-90%2B%20%C2%B7%204y-F3D688?style=for-the-badge&labelColor=2A1A45)
-![Founder](https://img.shields.io/badge/FOUNDER-bespoke-FF2F45?style=for-the-badge&labelColor=3A0A10)
-
-</div>
-
-HERO gets its own teal frame (high overall and very active this year). TOTY is every stat 90+. ICON is a 90+ on a 4-year-plus account. Founders get bespoke art. No IN-FORM.
+No IN-FORM.
 
 ## Beyond the card
 
