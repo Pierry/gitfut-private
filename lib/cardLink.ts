@@ -56,9 +56,14 @@ function sanitize(card: Card): Card | null {
 
 export async function decodeShare(s: string): Promise<{ card: Card; signals?: Signals } | null> {
   try {
-    const kind = s[0];
-    const comp = s[1];
-    const bytes = fromB64url(s.slice(2));
+    // Some share targets append the share text / a file path to the URL, so the
+    // ?c= value can carry trailing junk after the payload. Keep only the leading
+    // run of tag + base64url characters and drop the rest.
+    const clean = (s.match(/^[A-Za-z0-9\-_]+/) ?? [""])[0];
+    if (clean.length < 3) return null;
+    const kind = clean[0];
+    const comp = clean[1];
+    const bytes = fromB64url(clean.slice(2));
     const json =
       comp === "g" && typeof DecompressionStream !== "undefined"
         ? new TextDecoder().decode(await pipe(bytes, new DecompressionStream("gzip")))
