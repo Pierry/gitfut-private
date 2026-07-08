@@ -15,6 +15,10 @@ const nextConfig: NextConfig = {
   basePath,
   trailingSlash: true,
   images: { unoptimized: true }, // no Image Optimization server on a static host
+  // Exposed to the client so lib/asset can prefix /public assets (card art,
+  // flags, mascot) that raw <img>/CSS url() reference — next/image prefixes
+  // basePath automatically, but hand-written paths don't.
+  env: { NEXT_PUBLIC_BASE_PATH: basePath },
 };
 
 export default nextConfig;

@@ -5,6 +5,7 @@ import { Pencil, Plus, Search, X } from "lucide-react";
 import { searchCountries } from "@/lib/countries";
 import { comboboxReducer, initialComboboxState } from "@/lib/comboboxNav";
 import { useClickOutside } from "@/hooks/useClickOutside";
+import { asset } from "@/lib/asset";
 
 interface Props {
   /** Current flag (ISO 3166-1 alpha-2, lowercase) or "" / null for none. */
@@ -12,7 +13,7 @@ interface Props {
   onChange: (code: string) => void;
 }
 
-const FLAG = (code: string) => `/badges/flags/${code}.png`;
+const FLAG = (code: string) => asset(`/badges/flags/${code}.png`);
 
 // The flag's slot on the 540×820 PlayerCard (kept in sync with PlayerCard.tsx).
 // The trigger overlays exactly this region so "click the flag" feels native.

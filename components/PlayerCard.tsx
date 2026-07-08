@@ -3,6 +3,7 @@
 import { memo, type CSSProperties } from "react";
 import type { Card, StatKey } from "@/lib/scoring/types";
 import { languageLogoUrl } from "@/lib/github/languages";
+import { asset } from "@/lib/asset";
 import { resolveCardTheme } from "./finishTheme";
 
 // Faithful port of the Python FUT generator's 540×820 layout. Positions are
@@ -62,6 +63,7 @@ const hideOnError: React.ReactEventHandler<HTMLImageElement> = (e) => {
 function PlayerCard({ card }: { card: Card }) {
   const t = resolveCardTheme(card);
   const ink = t.ink;
+  const bg = asset(t.bg); // basePath-aware tier art (img src + silhouette mask)
   const full = card.name.trim();
   const displayName = (
     full.length <= 9 ? full : full.split(" ").slice(-1)[0]
@@ -94,7 +96,7 @@ function PlayerCard({ card }: { card: Card }) {
     <div className="gitfut-card-frame" style={wrap}>
       {/* tier background art */}
       <img
-        src={t.bg}
+        src={bg}
         alt=""
         aria-hidden
         style={{
@@ -113,8 +115,8 @@ function PlayerCard({ card }: { card: Card }) {
         style={{
           position: "absolute",
           inset: 0,
-          WebkitMaskImage: `url("${t.bg}")`,
-          maskImage: `url("${t.bg}")`,
+          WebkitMaskImage: `url("${bg}")`,
+          maskImage: `url("${bg}")`,
           WebkitMaskSize: "100% 100%",
           maskSize: "100% 100%",
         }}
@@ -206,7 +208,7 @@ function PlayerCard({ card }: { card: Card }) {
       {/* country flag — only when a country was resolved from the GitHub location */}
       {card.country && (
         <img
-          src={`/badges/flags/${card.country}.png`}
+          src={asset(`/badges/flags/${card.country}.png`)}
           onError={hideOnError}
           alt={card.country}
           style={{

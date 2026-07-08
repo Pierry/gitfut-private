@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import { asset } from "@/lib/asset";
 
 // GitFut mascot — the real logo asset (public/mascot.webp): the Octocat-as-
 // footballer kicking the WC26 ball. Rendered as-is; `animate` adds a gentle
@@ -19,7 +20,7 @@ interface MascotProps {
 function Mascot({ size = 220, className, animate = true }: MascotProps) {
   return (
     <img
-      src="/mascot.webp"
+      src={asset("/mascot.webp")}
       alt="GitFut mascot, an octopus footballer kicking the World Cup 26 ball"
       width={size}
       height={size}
